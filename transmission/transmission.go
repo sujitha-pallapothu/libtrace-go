@@ -275,7 +275,8 @@ func (b *batchAgg) Fire(notifier muster.Notifier) {
 	// send each batchKey's collection of event as a POST to /1/batch/<dataset>
 	// we don't need the batch key anymore; it's done its sorting job
 	for _, events := range b.batches {
-		b.fireBatch(events)
+		//b.fireBatch(events)
+		b.exportBatch(events)
 	}
 	// The initial batches could have had payloads that were greater than 5MB.
 	// The remaining events will have overflowed into overflowBatches
