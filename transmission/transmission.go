@@ -376,10 +376,9 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	for _, ev := range events {
 		traceData := proxypb.ProxySpan{}
+		traceData.Data = &proxypb.Data{}
 		fmt.Printf("\nData: ", ev.Data)
-		fmt.Printf("\ntraceID: ", ev.Data["traceTraceID"])
 		traceData.Data.TraceTraceID = ev.Data["traceTraceID"].(string)
-		fmt.Printf("\ntraceID2: ", traceData.Data.TraceTraceID)
 		traceData.Data.TraceParentID = ev.Data["traceParentID"].(string)
 		traceData.Data.TraceSpanID, _ = ev.Data["traceSpanID"].(string)
 		traceData.Data.TraceLinkTraceID, _ = ev.Data["traceLinkTraceID"].(string)
