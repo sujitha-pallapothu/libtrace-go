@@ -402,14 +402,41 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		for key, val := range resourceAttr {
 			resourceAttrKeyVal := proxypb.KeyValue{}
 			resourceAttrKeyVal.Key = key
-			resourceAttrKeyVal.Value = val.(*proxypb.AnyValue)
+
+			switch v := val.(type) {
+			case nil:
+				fmt.Println("x is nil") // here v has type interface{}
+			case string:
+				resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
+			case bool:
+				resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
+			case int64:
+				resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
+			default:
+				fmt.Println("type unknown: ", v) // here v has type interface{}
+			}
+
 			traceData.Data.ResourceAttributes = append(traceData.Data.ResourceAttributes, &resourceAttrKeyVal)
 		}
 		spanAttr, _ := ev.Data["spanAttributes"].(map[string]interface{})
 		for key, val := range spanAttr {
 			spanAttrKeyVal := proxypb.KeyValue{}
 			spanAttrKeyVal.Key = key
-			spanAttrKeyVal.Value = val.(*proxypb.AnyValue)
+			//spanAttrKeyVal.Value = val.(*proxypb.AnyValue)
+
+			switch v := val.(type) {
+			case nil:
+				fmt.Println("x is nil") // here v has type interface{}
+			case string:
+				spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
+			case bool:
+				spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
+			case int64:
+				spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
+			default:
+				fmt.Println("type unknown: ", v) // here v has type interface{}
+			}
+
 			traceData.Data.SpanAttributes = append(traceData.Data.SpanAttributes, &spanAttrKeyVal)
 		}
 
