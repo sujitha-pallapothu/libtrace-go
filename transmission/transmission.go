@@ -12,6 +12,7 @@ package transmission
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,8 +26,11 @@ import (
 	"time"
 
 	"github.com/facebookgo/muster"
+	proxypb "github.com/honeycombio/libhoney-go/proto/proxypb"
 	"github.com/klauspost/compress/zstd"
 	"github.com/vmihailenco/msgpack/v5"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -276,7 +280,8 @@ func (b *batchAgg) Fire(notifier muster.Notifier) {
 	// we don't need the batch key anymore; it's done its sorting job
 	for _, events := range b.batches {
 		//b.fireBatch(events)
-		b.exportBatch(events)
+		//b.exportBatch(events)
+		b.exportProtoMsgBatch(events)
 	}
 	// The initial batches could have had payloads that were greater than 5MB.
 	// The remaining events will have overflowed into overflowBatches
@@ -307,7 +312,8 @@ func (b *batchAgg) Fire(notifier muster.Notifier) {
 				// so we want to clear this key before firing the batch
 				delete(b.overflowBatches, k)
 				//b.fireBatch(events)
-				b.exportBatch(events)
+				//b.exportBatch(events)
+				b.exportProtoMsgBatch(events)
 			}
 		}
 	}
@@ -315,6 +321,264 @@ func (b *batchAgg) Fire(notifier muster.Notifier) {
 
 type httpError interface {
 	Timeout() bool
+}
+
+func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
+	fmt.Println("Exporting ProtoMsg batch..")
+	//start := time.Now().UTC()
+	//if b.testNower != nil {
+	//	start = b.testNower.Now()
+	//}
+	if len(events) == 0 {
+		// we managed to create a batch key with no events. odd. move on.
+		return
+	}
+
+	var numEncoded int
+	var encEvs []byte
+	//var contentType string
+	//contentType = "application/grpc"
+	encEvs, numEncoded = b.encodeBatchProtoBuf(events)
+
+	fmt.Println("Export protobuf batch data:", string(encEvs))
+
+	// if we failed to encode any events skip this batch
+	if numEncoded == 0 {
+		return
+	}
+
+	// get some attributes common to this entire batch up front off the first
+	// valid event (some may be nil)
+	var apiHost string
+	//var apiHost, writeKey, dataset string
+	for _, ev := range events {
+		if ev != nil {
+			apiHost = ev.APIHost
+			//writeKey = ev.APIKey
+			//dataset = ev.Dataset
+			break
+		}
+	}
+
+	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		fmt.Printf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := proxypb.NewTraceProxyServiceClient(conn)
+
+	req := proxypb.ExportTraceProxyServiceRequest{}
+
+	for _, ev := range events {
+		traceData := proxypb.ProxySpan{}
+
+		/*traceData.Data.TraceTraceID = ev.Data[""]
+		traceData.Data.TraceLinkTraceID
+		traceData.Data.Type
+		traceData.Data.Attributes
+		traceData.Data.SpanKind
+		traceData.Data.StatusCode
+		traceData.Data.DurationMs
+		traceData.Data.Error
+		traceData.Data.FromProxy
+		traceData.Data.ParentName
+		traceData.Data.ResourceAttributes
+		traceData.Data.
+		*/
+
+		var tracedata proxypb.Data
+		err = json.Unmarshal(encEvs, &tracedata)
+		if err != nil {
+			fmt.Printf("Error: %v \n", err)
+		} else {
+			traceData.Data = &tracedata
+			traceData.Time = uint64(ev.Timestamp.Unix())
+			req.Items = append(req.Items, &traceData)
+		}
+	}
+
+	// Contact the server and print out its response.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	r, err := c.Export(ctx, &req)
+	if err != nil {
+		fmt.Printf("could not export traces from proxy: %v", err)
+	}
+	fmt.Printf("trace proxy response msg: %s", r.GetMessage())
+	fmt.Printf("trace proxy response status: %s", r.GetStatus())
+
+	/*
+		url, err := url.Parse(apiHost)
+		if err != nil {
+			end := time.Now().UTC()
+			if b.testNower != nil {
+				end = b.testNower.Now()
+			}
+			dur := end.Sub(start)
+			b.metrics.Increment("send_errors")
+			for _, ev := range events {
+				// Pass the parsing error down responses channel for each event that
+				// didn't already error during encoding
+				if ev != nil {
+					b.enqueueResponse(Response{
+						Duration: dur / time.Duration(numEncoded),
+						Metadata: ev.Metadata,
+						Err:      err,
+					})
+				}
+			}
+			return
+		}
+
+		// build the HTTP request
+		url.Path = path.Join(url.Path, "/1/batch", dataset)
+
+		// sigh. dislike
+		userAgent := fmt.Sprintf("libhoney-go/%s", Version)
+		if b.userAgentAddition != "" {
+			userAgent = fmt.Sprintf("%s %s", userAgent, strings.TrimSpace(b.userAgentAddition))
+		}
+
+		// One retry allowed for connection timeouts.
+		var resp *http.Response
+		for try := 0; try < 2; try++ {
+			if try > 0 {
+				b.metrics.Increment("send_retries")
+			}
+
+			var req *http.Request
+			reqBody, zipped := buildReqReader(encEvs, !b.disableCompression)
+			if reader, ok := reqBody.(*pooledReader); ok {
+				// Pass the underlying bytes.Reader to http.Request so that
+				// GetBody and ContentLength fields are populated on Request.
+				// See https://cs.opensource.google/go/go/+/refs/tags/go1.17.5:src/net/http/request.go;l=898
+				req, err = http.NewRequest("POST", url.String(), &reader.Reader)
+			} else {
+				req, err = http.NewRequest("POST", url.String(), reqBody)
+			}
+			req.Header.Set("Content-Type", contentType)
+			if zipped {
+				req.Header.Set("Content-Encoding", "zstd")
+			}
+
+			req.Header.Set("User-Agent", userAgent)
+			//req.Header.Add("X-Honeycomb-Team", writeKey)
+			// send off batch!
+			resp, err = b.httpClient.Do(req)
+			if reader, ok := reqBody.(*pooledReader); ok {
+				reader.Release()
+			}
+
+			if httpErr, ok := err.(httpError); ok && httpErr.Timeout() {
+				continue
+			}
+			break
+		}
+		end := time.Now().UTC()
+		if b.testNower != nil {
+			end = b.testNower.Now()
+		}
+		dur := end.Sub(start)
+
+		// if the entire HTTP POST failed, send a failed response for every event
+		if err != nil {
+			b.metrics.Increment("send_errors")
+			// Pass the top-level send error down responses channel for each event
+			// that didn't already error during encoding
+			b.enqueueErrResponses(err, events, dur/time.Duration(numEncoded))
+			// the POST failed so we're done with this batch key's worth of events
+			return
+		}
+
+		// ok, the POST succeeded, let's process each individual response
+		b.metrics.Increment("batches_sent")
+		b.metrics.Count("messages_sent", numEncoded)
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			b.metrics.Increment("send_errors")
+
+			var err error
+			var body []byte
+			if resp.Header.Get("Content-Type") == "application/msgpack" {
+				var errorBody interface{}
+				decoder := msgpack.NewDecoder(resp.Body)
+				err = decoder.Decode(&errorBody)
+				if err == nil {
+					body, err = json.Marshal(&errorBody)
+				}
+			} else {
+				body, err = ioutil.ReadAll(resp.Body)
+			}
+			if err != nil {
+				b.enqueueErrResponses(
+					fmt.Errorf("Got HTTP error code but couldn't read response body: %v", err),
+					events,
+					dur/time.Duration(numEncoded),
+				)
+				return
+			}
+			// log if write key was rejected because of invalid Write / API key
+			if resp.StatusCode == http.StatusUnauthorized {
+				b.logger.Printf("APIKey '%s' was rejected. Please verify APIKey is correct.", writeKey)
+			}
+			for _, ev := range events {
+				err := fmt.Errorf(
+					"got unexpected HTTP status %d: %s",
+					resp.StatusCode,
+					http.StatusText(resp.StatusCode),
+				)
+				if ev != nil {
+					b.enqueueResponse(Response{
+						StatusCode: resp.StatusCode,
+						Body:       body,
+						Duration:   dur / time.Duration(numEncoded),
+						Metadata:   ev.Metadata,
+						Err:        err,
+					})
+				}
+			}
+			return
+		}
+
+		// decode the responses
+		var batchResponses []Response
+		if resp.Header.Get("Content-Type") == "application/msgpack" {
+			err = msgpack.NewDecoder(resp.Body).Decode(&batchResponses)
+		} else {
+			err = json.NewDecoder(resp.Body).Decode(&batchResponses)
+		}
+		if err != nil {
+			// if we can't decode the responses, just error out all of them
+			b.metrics.Increment("response_decode_errors")
+			b.enqueueErrResponses(fmt.Errorf(
+				"got OK HTTP response, but couldn't read response body: %v", err),
+				events,
+				dur/time.Duration(numEncoded),
+			)
+			return
+		}
+
+		// Go through the responses and send them down the queue. If an Event
+		// triggered a JSON error, it wasn't sent to the server and won't have a
+		// returned response... so we have to be a bit more careful matching up
+		// responses with Events.
+		var eIdx int
+		for _, resp := range batchResponses {
+			resp.Duration = dur / time.Duration(numEncoded)
+			for eIdx < len(events) && events[eIdx] == nil {
+				fmt.Printf("incr, eIdx: %d, len(evs): %d\n", eIdx, len(events))
+				eIdx++
+			}
+			if eIdx == len(events) { // just in case
+				break
+			}
+			resp.Metadata = events[eIdx].Metadata
+			b.enqueueResponse(resp)
+			eIdx++
+		}
+	*/
+
 }
 
 func (b *batchAgg) exportBatch(events []*Event) {
@@ -739,6 +1003,60 @@ func (b *batchAgg) fireBatch(events []*Event) {
 // create the JSON for this event list manually so that we can send
 // responses down the response queue for any that fail to marshal
 func (b *batchAgg) encodeBatchJSON(events []*Event) ([]byte, int) {
+	// track first vs. rest events for commas
+	first := true
+	// track how many we successfully encode for later bookkeeping
+	var numEncoded int
+	buf := bytes.Buffer{}
+	buf.WriteByte('[')
+	bytesTotal := 1
+	// ok, we've got our array, let's populate it with JSON events
+	for i, ev := range events {
+		evByt, err := json.Marshal(ev)
+		// check all our errors first in case we need to skip batching this event
+		if err != nil {
+			b.enqueueResponse(Response{
+				Err:      err,
+				Metadata: ev.Metadata,
+			})
+			// nil out the invalid Event so we can line up sent Events with server
+			// responses if needed. don't delete to preserve slice length.
+			events[i] = nil
+			continue
+		}
+		// if the event is too large to ever send, add an error to the queue
+		if len(evByt) > apiEventSizeMax {
+			b.enqueueResponse(Response{
+				Err:      fmt.Errorf("event exceeds max event size of %d bytes, API will not accept this event", apiEventSizeMax),
+				Metadata: ev.Metadata,
+			})
+			events[i] = nil
+			continue
+		}
+
+		bytesTotal += len(evByt)
+		// count for the trailing ]
+		if bytesTotal+1 > apiMaxBatchSize {
+			b.reenqueueEvents(events[i:])
+			break
+		}
+
+		// ok, we have valid JSON and it'll fit in this batch; add ourselves a comma and the next value
+		if !first {
+			buf.WriteByte(',')
+			bytesTotal++
+		}
+		first = false
+		buf.Write(evByt)
+		numEncoded++
+	}
+	buf.WriteByte(']')
+	return buf.Bytes(), numEncoded
+}
+
+// create the JSON for this event list manually so that we can send
+// responses down the response queue for any that fail to marshal
+func (b *batchAgg) encodeBatchProtoBuf(events []*Event) ([]byte, int) {
 	// track first vs. rest events for commas
 	first := true
 	// track how many we successfully encode for later bookkeeping
