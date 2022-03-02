@@ -17,11 +17,12 @@ service TraceProxyService {
 
 message ExportTraceProxyServiceRequest {
   repeated ProxySpan items = 1;
+  string tenantId = 2;
 }
 
 message ProxySpan {
   Data data = 1;
-  fixed64 time = 2;
+  string timestamp = 2;
 }
 
 message Data {
@@ -42,13 +43,15 @@ message Data {
   string traceLinkTraceID = 17;
   bool error = 18;
   string statusMessage = 19;
+  int64 time = 20;
+  string metaType = 21;
 
   // The OpenTelemetry API specification further restricts the allowed value types:
   // https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/common/common.md#attributes
   // Attribute keys MUST be unique (it is not allowed to have more than one
   // attribute with the same key).
-  repeated KeyValue resourceAttributes = 20;
-  repeated KeyValue attributes = 21;
+  repeated KeyValue resourceAttributes = 22;
+  repeated KeyValue spanAttributes = 23;
 }
 
 // AnyValue is used to represent any type of attribute value. AnyValue may contain a

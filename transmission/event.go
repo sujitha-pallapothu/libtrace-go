@@ -50,7 +50,7 @@ func (e *Event) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Data       marshallableMap `json:"data"`
 		SampleRate uint            `json:"samplerate,omitempty"`
-		Timestamp  *time.Time      `json:"time,omitempty"`
+		Timestamp  *time.Time      `json:"timestamp,omitempty"`
 	}{e.Data, sampleRate, tPointer})
 }
 
