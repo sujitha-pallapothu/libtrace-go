@@ -362,7 +362,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		fmt.Printf("did not connect: %v", err)
+		fmt.Printf("Could not connect: %v", err)
 	}
 	defer conn.Close()
 	c := proxypb.NewTraceProxyServiceClient(conn)
@@ -412,8 +412,8 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	if err != nil {
 		fmt.Printf("could not export traces from proxy: %v", err)
 	}
-	fmt.Printf("trace proxy response msg: %s", r.GetMessage())
-	fmt.Printf("trace proxy response status: %s", r.GetStatus())
+	fmt.Printf("trace proxy response msg: %s\n", r.GetMessage())
+	fmt.Printf("trace proxy response status: %s\n", r.GetStatus())
 
 	/*
 		url, err := url.Parse(apiHost)
