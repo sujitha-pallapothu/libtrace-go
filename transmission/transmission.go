@@ -397,7 +397,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		traceData.Data.Error, _ = ev.Data["error"].(bool)
 		traceData.Data.FromProxy, _ = ev.Data["fromProxy"].(bool)
 		traceData.Data.ParentName, _ = ev.Data["parentName"].(string)
-		traceData.Timestamp = ev.Timestamp
+		traceData.Timestamp = ev.Timestamp.String()
 
 		resourceAttr, _ := ev.Data["resourceAttributes"].(map[string]interface{})
 		for key, val := range resourceAttr {
