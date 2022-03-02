@@ -30,7 +30,6 @@ message Data {
   string type = 4;
   string spanName = 5;
   string parentName = 6;
-  string serviceName = 7;
   string spanKind = 8;
   int64 spanNumEvents = 9;
   int64 spanNumLinks = 10;

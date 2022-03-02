@@ -369,41 +369,64 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	req := proxypb.ExportTraceProxyServiceRequest{}
 
-	err = json.Unmarshal(encEvs, &req.Items)
-	if err != nil {
-		fmt.Printf("Error: %v \n", err)
-	}
-
-	//for _, ev := range events {
-	//traceData := proxypb.ProxySpan{}
-
-	/*traceData.Data.TraceTraceID = ev.Data[""]
-	traceData.Data.TraceLinkTraceID
-	traceData.Data.Type
-	traceData.Data.Attributes
-	traceData.Data.SpanKind
-	traceData.Data.StatusCode
-	traceData.Data.DurationMs
-	traceData.Data.Error
-	traceData.Data.FromProxy
-	traceData.Data.ParentName
-	traceData.Data.ResourceAttributes
-	traceData.Data.
-	*/
-
-	/*var tracedata []proxypb.Data
-	err = json.Unmarshal(encEvs, &tracedata)
-	if err != nil {
-		fmt.Printf("Error: %v \n", err)
-	} else {
-		for _,trData:= range tracedata{
-			traceData := proxypb.ProxySpan{}
-			traceData.Data = &trData
-			traceData.Time = uint64(ev.Timestamp.Unix())
-			req.Items = append(req.Items, &traceData)
-		}
-	}*/
+	//err = json.Unmarshal(encEvs, &req.Items)
+	//if err != nil {
+	//	fmt.Printf("Error: %v \n", err)
 	//}
+
+	for _, ev := range events {
+		traceData := proxypb.ProxySpan{}
+		traceData.Data.TraceTraceID, _ = ev.Data["traceTraceID"].(string)
+		traceData.Data.TraceParentID, _ = ev.Data["traceParentID"].(string)
+		traceData.Data.TraceSpanID, _ = ev.Data["traceSpanID"].(string)
+		traceData.Data.TraceLinkTraceID, _ = ev.Data["traceLinkTraceID"].(string)
+		traceData.Data.TraceLinkSpanID, _ = ev.Data["traceLinkSpanID"].(string)
+		traceData.Data.Type, _ = ev.Data["type"].(string)
+		traceData.Data.MetaType, _ = ev.Data["metaType"].(string)
+		traceData.Data.SpanName, _ = ev.Data["spanName"].(string)
+		traceData.Data.SpanKind, _ = ev.Data["spanKind"].(string)
+		traceData.Data.SpanNumEvents, _ = ev.Data["spanNumEvents"].(int64)
+		traceData.Data.SpanNumLinks, _ = ev.Data["spanNumLinks"].(int64)
+		traceData.Data.StatusCode, _ = ev.Data["statusCode"].(int64)
+		traceData.Data.StatusMessage, _ = ev.Data["statusMessage"].(string)
+		traceData.Data.Time, _ = ev.Data["time"].(int64)
+		traceData.Data.DurationMs, _ = ev.Data["durationMs"].(float64)
+		traceData.Data.Error, _ = ev.Data["error"].(bool)
+		traceData.Data.FromProxy, _ = ev.Data["fromProxy"].(bool)
+		traceData.Data.ParentName, _ = ev.Data["parentName"].(string)
+
+		resourceAttr, _ := ev.Data["resourceAttributes"].(map[string]interface{})
+		for key, val := range resourceAttr {
+			resourceAttrKeyVal := proxypb.KeyValue{}
+			resourceAttrKeyVal.Key = key
+			resourceAttrKeyVal.Value = val.(*proxypb.AnyValue)
+			traceData.Data.ResourceAttributes = append(traceData.Data.ResourceAttributes, &resourceAttrKeyVal)
+		}
+		spanAttr, _ := ev.Data["spanAttributes"].(map[string]interface{})
+		for key, val := range spanAttr {
+			spanAttrKeyVal := proxypb.KeyValue{}
+			spanAttrKeyVal.Key = key
+			spanAttrKeyVal.Value = val.(*proxypb.AnyValue)
+			traceData.Data.SpanAttributes = append(traceData.Data.SpanAttributes, &spanAttrKeyVal)
+		}
+
+		req.Items = append(req.Items, &traceData)
+
+		/*var tracedata []proxypb.Data
+		err = json.Unmarshal(encEvs, &tracedata)
+			if err != nil {
+				fmt.Printf("Error: %v \n", err)
+			} else {
+				for _,trData:= range tracedata{
+					traceData := proxypb.ProxySpan{}
+					traceData.Data = &trData
+					traceData.Time = uint64(ev.Timestamp.Unix())
+					req.Items = append(req.Items, &traceData)
+				}
+			}
+		*/
+
+	}
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
