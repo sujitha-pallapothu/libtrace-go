@@ -369,33 +369,41 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	req := proxypb.ExportTraceProxyServiceRequest{}
 
-	for _, ev := range events {
-		traceData := proxypb.ProxySpan{}
+	err = json.Unmarshal(encEvs, &req.Items)
+	if err != nil {
+		fmt.Printf("Error: %v \n", err)
+	}
 
-		/*traceData.Data.TraceTraceID = ev.Data[""]
-		traceData.Data.TraceLinkTraceID
-		traceData.Data.Type
-		traceData.Data.Attributes
-		traceData.Data.SpanKind
-		traceData.Data.StatusCode
-		traceData.Data.DurationMs
-		traceData.Data.Error
-		traceData.Data.FromProxy
-		traceData.Data.ParentName
-		traceData.Data.ResourceAttributes
-		traceData.Data.
-		*/
+	//for _, ev := range events {
+	//traceData := proxypb.ProxySpan{}
 
-		var tracedata proxypb.Data
-		err = json.Unmarshal(encEvs, &tracedata)
-		if err != nil {
-			fmt.Printf("Error: %v \n", err)
-		} else {
-			traceData.Data = &tracedata
+	/*traceData.Data.TraceTraceID = ev.Data[""]
+	traceData.Data.TraceLinkTraceID
+	traceData.Data.Type
+	traceData.Data.Attributes
+	traceData.Data.SpanKind
+	traceData.Data.StatusCode
+	traceData.Data.DurationMs
+	traceData.Data.Error
+	traceData.Data.FromProxy
+	traceData.Data.ParentName
+	traceData.Data.ResourceAttributes
+	traceData.Data.
+	*/
+
+	/*var tracedata []proxypb.Data
+	err = json.Unmarshal(encEvs, &tracedata)
+	if err != nil {
+		fmt.Printf("Error: %v \n", err)
+	} else {
+		for _,trData:= range tracedata{
+			traceData := proxypb.ProxySpan{}
+			traceData.Data = &trData
 			traceData.Time = uint64(ev.Timestamp.Unix())
 			req.Items = append(req.Items, &traceData)
 		}
-	}
+	}*/
+	//}
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
