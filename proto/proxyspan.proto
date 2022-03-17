@@ -51,6 +51,9 @@ message Data {
   // attribute with the same key).
   repeated KeyValue resourceAttributes = 22;
   repeated KeyValue spanAttributes = 23;
+  repeated KeyValue eventAttributes = 24;
+  int64 startTime = 25;
+  int64 endTime = 26;
 }
 
 // AnyValue is used to represent any type of attribute value. AnyValue may contain a

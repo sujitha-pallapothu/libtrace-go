@@ -30,6 +30,9 @@ type Event struct {
 
 	// Data contains the content of the event (all the fields and their values)
 	Data map[string]interface{}
+
+	APIToken    string
+	APITenantId string
 }
 
 // Marshaling an Event for batching up to the Honeycomb servers. Omits fields

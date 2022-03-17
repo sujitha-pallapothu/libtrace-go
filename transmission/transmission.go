@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"google.golang.org/grpc/metadata"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -350,12 +351,17 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	// get some attributes common to this entire batch up front off the first
 	// valid event (some may be nil)
 	var apiHost string
+	var tenantId string
+	var token string
+
 	//var apiHost, writeKey, dataset string
 	for _, ev := range events {
 		if ev != nil {
 			apiHost = ev.APIHost
 			//writeKey = ev.APIKey
 			//dataset = ev.Dataset
+			tenantId = ev.APITenantId
+			token = ev.APIToken
 			break
 		}
 	}
@@ -393,6 +399,8 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		traceData.Data.StatusMessage, _ = ev.Data["statusMessage"].(string)
 		traceData.Data.Time, _ = ev.Data["time"].(int64)
 		traceData.Data.DurationMs, _ = ev.Data["durationMs"].(float64)
+		traceData.Data.StartTime, _ = ev.Data["startTIme"].(int64)
+		traceData.Data.EndTime, _ = ev.Data["endTime"].(int64)
 		traceData.Data.Error, _ = ev.Data["error"].(bool)
 		traceData.Data.FromProxy, _ = ev.Data["fromProxy"].(bool)
 		traceData.Data.ParentName, _ = ev.Data["parentName"].(string)
@@ -440,6 +448,28 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 			traceData.Data.SpanAttributes = append(traceData.Data.SpanAttributes, &spanAttrKeyVal)
 		}
 
+		eventAttr, _ := ev.Data["eventAttributes"].(map[string]interface{})
+		for key, val := range eventAttr {
+			eventAttrKeyVal := proxypb.KeyValue{}
+			eventAttrKeyVal.Key = key
+			//spanAttrKeyVal.Value = val.(*proxypb.AnyValue)
+
+			switch v := val.(type) {
+			case nil:
+				fmt.Println("x is nil") // here v has type interface{}
+			case string:
+				eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
+			case bool:
+				eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
+			case int64:
+				eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
+			default:
+				fmt.Println("type unknown: ", v) // here v has type interface{}
+			}
+
+			traceData.Data.EventAttributes = append(traceData.Data.EventAttributes, &eventAttrKeyVal)
+		}
+
 		req.Items = append(req.Items, &traceData)
 
 		/*var tracedata []proxypb.Data
@@ -460,6 +490,11 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+	//Add headers
+	//md := metadata.New(map[string]string{"authorization": token, "tenantId": tenantId})
+	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", token, "tenantId", tenantId)
+
 	defer cancel()
 	r, err := c.Export(ctx, &req)
 	if err != nil {
