@@ -371,6 +371,9 @@ type Event struct {
 	// should just return immediately taking no action.
 	sent     bool
 	sendLock sync.Mutex
+
+	APIToken    string
+	APITenantId string
 }
 
 // Builder is used to create templates for new events, specifying default fields
@@ -819,13 +822,15 @@ func (e *Event) SendPresampled() (err error) {
 
 	e.client.ensureTransmission()
 	txEvent := &transmission.Event{
-		APIHost:    e.APIHost,
-		APIKey:     e.WriteKey,
-		Dataset:    e.Dataset,
-		SampleRate: e.SampleRate,
-		Timestamp:  e.Timestamp,
-		Metadata:   e.Metadata,
-		Data:       e.data,
+		APIHost:     e.APIHost,
+		APIKey:      e.WriteKey,
+		APIToken:    e.APIToken,
+		APITenantId: e.APITenantId,
+		Dataset:     e.Dataset,
+		SampleRate:  e.SampleRate,
+		Timestamp:   e.Timestamp,
+		Metadata:    e.Metadata,
+		Data:        e.data,
 	}
 	e.client.transmission.Add(txEvent)
 	return nil

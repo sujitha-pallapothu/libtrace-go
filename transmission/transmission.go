@@ -325,7 +325,7 @@ type httpError interface {
 }
 
 func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
-	fmt.Println("Exporting ProtoMsg batch..")
+	fmt.Println("Exporting ProtoMsg batch...")
 	//start := time.Now().UTC()
 	//if b.testNower != nil {
 	//	start = b.testNower.Now()
@@ -365,6 +365,9 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 			break
 		}
 	}
+
+	fmt.Printf("\ntenantId: %v", tenantId)
+	fmt.Printf("\ntoken: %v", token)
 
 	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
