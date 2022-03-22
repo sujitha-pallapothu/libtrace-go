@@ -389,6 +389,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		ServerName:         apiHost,
 		RootCAs:            cp,
 	}
+
 	tlsCreds := credentials.NewTLS(tlsCfg)
 
 	//conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
