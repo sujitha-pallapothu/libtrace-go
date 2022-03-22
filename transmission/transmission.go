@@ -376,6 +376,10 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		return
 	}
 
+	apiHost = strings.Replace(apiHost, "https://", "", -1)
+	apiHost = strings.Replace(apiHost, "http://", "", -1)
+	apiHostUrl := apiHost + ":443"
+	fmt.Printf("\napiHost: %v", apiHost)
 	//Root Cert
 	cp := x509.NewCertPool()
 
@@ -388,7 +392,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	tlsCreds := credentials.NewTLS(tlsCfg)
 
 	//conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(tlsCreds))
+	conn, err := grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
 
 	//auth, _ := oauth.NewApplicationDefault(context.Background(), "")
 	//conn, err := grpc.Dial(apiHost, grpc.WithPerRPCCredentials(auth))
