@@ -369,6 +369,13 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	fmt.Printf("\ntenantId: %v", tenantId)
 	fmt.Printf("\ntoken: %v", token)
 
+	if tenantId == "" {
+		fmt.Println("Skipping as TenantId is empty")
+		return
+	}
+
+	//endpointUrl:= fmt.Sprintf("%s/trace-proxy/api/v7/tenants/%s/traces",apiHost,tenantId)
+
 	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		fmt.Printf("Could not connect: %v", err)
@@ -378,6 +385,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	req := proxypb.ExportTraceProxyServiceRequest{}
 
+	req.TenantId = tenantId
 	//err = json.Unmarshal(encEvs, &req.Items)
 	//if err != nil {
 	//	fmt.Printf("Error: %v \n", err)
