@@ -13,9 +13,11 @@ package transmission
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"io/ioutil"
@@ -31,7 +33,6 @@ import (
 	"github.com/klauspost/compress/zstd"
 	"github.com/vmihailenco/msgpack/v5"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -375,8 +376,14 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	}
 
 	//endpointUrl:= fmt.Sprintf("%s/trace-proxy/api/v7/tenants/%s/traces",apiHost,tenantId)
+	tlsCfg := &tls.Config{
+		MinVersion:         tls.VersionTLS12,
+		InsecureSkipVerify: true,
+	}
+	tlsCreds := credentials.NewTLS(tlsCfg)
 
-	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	//conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(tlsCreds))
 	if err != nil {
 		fmt.Printf("Could not connect: %v", err)
 	}
