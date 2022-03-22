@@ -377,7 +377,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	tlsCfg := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
-		InsecureSkipVerify: false,
+		InsecureSkipVerify: true,
 		ServerName:         apiHost,
 	}
 	tlsCreds := credentials.NewTLS(tlsCfg)
