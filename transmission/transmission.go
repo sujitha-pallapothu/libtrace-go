@@ -380,8 +380,13 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	apiHost = strings.Replace(apiHost, "http://", "", -1)
 	apiHostUrl := apiHost + ":443"
 	fmt.Printf("\napiHost: %v", apiHost)
+
 	//Root Cert
+	cServer, _ := ioutil.ReadFile("/etc/ssl/certs/ca-certificates.crt")
 	cp := x509.NewCertPool()
+	if !cp.AppendCertsFromPEM(cServer) {
+		fmt.Printf("\ncredentials: failed to append certificates")
+	}
 
 	tlsCfg := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
