@@ -375,10 +375,10 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		return
 	}
 
-	//endpointUrl:= fmt.Sprintf("%s/trace-proxy/api/v7/tenants/%s/traces",apiHost,tenantId)
 	tlsCfg := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: false,
+		ServerName:         apiHost,
 	}
 	tlsCreds := credentials.NewTLS(tlsCfg)
 
