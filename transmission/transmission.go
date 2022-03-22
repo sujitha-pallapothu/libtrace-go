@@ -13,11 +13,10 @@ package transmission
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/oauth"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"io/ioutil"
@@ -375,15 +374,20 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		return
 	}
 
-	tlsCfg := &tls.Config{
+	/*tlsCfg := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
 		InsecureSkipVerify: true,
 		ServerName:         apiHost,
 	}
 	tlsCreds := credentials.NewTLS(tlsCfg)
+	*/
 
 	//conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(tlsCreds))
+	//conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(tlsCreds))
+
+	auth, _ := oauth.NewApplicationDefault(context.Background(), "")
+
+	conn, err := grpc.Dial(apiHost, grpc.WithPerRPCCredentials(auth))
 	if err != nil {
 		fmt.Printf("Could not connect: %v", err)
 	}
