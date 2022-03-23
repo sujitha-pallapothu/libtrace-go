@@ -532,15 +532,16 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	//Add headers
 	//md := metadata.New(map[string]string{"authorization": token, "tenantId": tenantId})
-	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", token, "tenantId", tenantId)
+	ctx = metadata.AppendToOutgoingContext(ctx, "Authorization", token, "tenantId", tenantId)
 
 	defer cancel()
 	r, err := c.Export(ctx, &req)
 	if err != nil {
 		fmt.Printf("could not export traces from proxy: %v", err)
 	}
-	fmt.Printf("trace proxy response msg: %s\n", r.GetMessage())
-	fmt.Printf("trace proxy response status: %s\n", r.GetStatus())
+	fmt.Printf("\ntrace proxy response: %s\n", r.String())
+	fmt.Printf("\ntrace proxy response msg: %s\n", r.GetMessage())
+	fmt.Printf("\ntrace proxy response status: %s\n", r.GetStatus())
 
 	/*
 		url, err := url.Parse(apiHost)
