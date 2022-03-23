@@ -378,7 +378,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	apiHost = strings.Replace(apiHost, "https://", "", -1)
 	apiHost = strings.Replace(apiHost, "http://", "", -1)
-	apiHostUrl := apiHost + ":443"
+	//apiHostUrl := apiHost + ":443"
 	fmt.Printf("\napiHost: %v", apiHost)
 
 	//Root Cert
