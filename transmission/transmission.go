@@ -528,7 +528,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	}
 
 	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	//Add headers
 	//md := metadata.New(map[string]string{"authorization": token, "tenantId": tenantId})
