@@ -14,7 +14,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -378,27 +377,31 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	apiHost = strings.Replace(apiHost, "https://", "", -1)
 	apiHost = strings.Replace(apiHost, "http://", "", -1)
-	//apiHostUrl := apiHost + ":443"
+	apiHostUrl := apiHost + ":443"
 	fmt.Printf("\napiHost: %v", apiHost)
 
 	//Root Cert
-	cServer, _ := ioutil.ReadFile("/etc/ssl/certs/ca-certificates.crt")
-	cp := x509.NewCertPool()
-	if !cp.AppendCertsFromPEM(cServer) {
-		fmt.Printf("\ncredentials: failed to append certificates")
-	}
+	//cServer, _ := ioutil.ReadFile("/etc/ssl/certs/ca-certificates.crt")
+	//cp := x509.NewCertPool()
+	//if !cp.AppendCertsFromPEM(cServer) {
+	//	fmt.Printf("\ncredentials: failed to append certificates")
+	//}
+	//
+	//tlsCfg := &tls.Config{
+	//	MinVersion:         tls.VersionTLS12,
+	//	InsecureSkipVerify: true,
+	//	ServerName:         apiHost,
+	//	RootCAs:            cp,
+	//}
 
 	tlsCfg := &tls.Config{
-		MinVersion:         tls.VersionTLS12,
 		InsecureSkipVerify: true,
-		ServerName:         apiHost,
-		RootCAs:            cp,
 	}
 
 	tlsCreds := credentials.NewTLS(tlsCfg)
 
 	//conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(tlsCreds))
+	conn, err := grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
 
 	//auth, _ := oauth.NewApplicationDefault(context.Background(), "")
 	//conn, err := grpc.Dial(apiHost, grpc.WithPerRPCCredentials(auth))
