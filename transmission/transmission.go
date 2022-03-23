@@ -390,7 +390,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	tlsCfg := &tls.Config{
 		MinVersion:         tls.VersionTLS12,
-		InsecureSkipVerify: false,
+		InsecureSkipVerify: true,
 		ServerName:         apiHost,
 		RootCAs:            cp,
 	}
@@ -398,7 +398,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	tlsCreds := credentials.NewTLS(tlsCfg)
 
 	//conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	conn, err := grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
+	conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(tlsCreds))
 
 	//auth, _ := oauth.NewApplicationDefault(context.Background(), "")
 	//conn, err := grpc.Dial(apiHost, grpc.WithPerRPCCredentials(auth))
