@@ -438,7 +438,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		traceData.Data.StatusMessage, _ = ev.Data["statusMessage"].(string)
 		traceData.Data.Time, _ = ev.Data["time"].(int64)
 		traceData.Data.DurationMs, _ = ev.Data["durationMs"].(float64)
-		traceData.Data.StartTime, _ = ev.Data["startTIme"].(int64)
+		traceData.Data.StartTime, _ = ev.Data["startTime"].(int64)
 		traceData.Data.EndTime, _ = ev.Data["endTime"].(int64)
 		traceData.Data.Error, _ = ev.Data["error"].(bool)
 		traceData.Data.FromProxy, _ = ev.Data["fromProxy"].(bool)
@@ -539,6 +539,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	if err != nil {
 		fmt.Printf("could not export traces from proxy: %v", err)
 	}
+
 	fmt.Printf("\ntrace proxy response: %s\n", r.String())
 	fmt.Printf("\ntrace proxy response msg: %s\n", r.GetMessage())
 	fmt.Printf("\ntrace proxy response status: %s\n", r.GetStatus())
