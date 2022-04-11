@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"io/ioutil"
@@ -86,6 +87,9 @@ type Honeycomb struct {
 
 	Logger  Logger
 	Metrics Metrics
+
+	UseTls         bool
+	UseTlsInsecure bool
 }
 
 func (h *Honeycomb) Start() error {
@@ -112,6 +116,8 @@ func (h *Honeycomb) Start() error {
 				disableCompression:    h.DisableGzipCompression || h.DisableCompression,
 				enableMsgpackEncoding: h.EnableMsgpackEncoding,
 				logger:                h.Logger,
+				useTls:                h.UseTls,
+				useTlsInsecure:        h.UseTlsInsecure,
 			}
 		}
 	}
@@ -239,6 +245,9 @@ type batchAgg struct {
 	testBlocker *sync.WaitGroup
 
 	logger Logger
+
+	useTls         bool
+	useTlsInsecure bool
 }
 
 // batch is a collection of events that will all be POSTed as one HTTP call
@@ -378,7 +387,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	apiHost = strings.Replace(apiHost, "https://", "", -1)
 	apiHost = strings.Replace(apiHost, "http://", "", -1)
 	var apiHostUrl string
-	if !strings.Contains(apiHost, ":"){
+	if !strings.Contains(apiHost, ":") {
 		apiHostUrl = apiHost + ":443"
 	} else {
 		apiHostUrl = apiHost
@@ -400,21 +409,35 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	//	RootCAs:            cp,
 	//}
 
-	tlsCfg := &tls.Config{
-		InsecureSkipVerify: true,
+	var conn *grpc.ClientConn
+	var err error
+	if b.useTls {
+		bInsecureSkip := b.useTlsInsecure
+
+		tlsCfg := &tls.Config{
+			InsecureSkipVerify: !bInsecureSkip,
+		}
+
+		tlsCreds := credentials.NewTLS(tlsCfg)
+		fmt.Println("Connecting with Tls")
+		conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
+
+		if err != nil {
+			fmt.Printf("Could not connect: %v", err)
+			return
+		}
+	} else {
+		fmt.Println("Connecting without Tls")
+		conn, err = grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			fmt.Printf("Could not connect: %v", err)
+			return
+		}
 	}
-
-	tlsCreds := credentials.NewTLS(tlsCfg)
-
-	//conn, err := grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	conn, err := grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
 
 	//auth, _ := oauth.NewApplicationDefault(context.Background(), "")
 	//conn, err := grpc.Dial(apiHost, grpc.WithPerRPCCredentials(auth))
 
-	if err != nil {
-		fmt.Printf("Could not connect: %v", err)
-	}
 	defer conn.Close()
 	c := proxypb.NewTraceProxyServiceClient(conn)
 
