@@ -428,7 +428,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		}
 	} else {
 		fmt.Println("Connecting without Tls")
-		conn, err = grpc.Dial(apiHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			fmt.Printf("Could not connect: %v", err)
 			return
