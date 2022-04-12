@@ -565,7 +565,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	ctx = metadata.AppendToOutgoingContext(ctx, "Authorization", token, "tenantId", tenantId)
 
 	defer cancel()
-	r, err := c.Export(ctx, &req)
+	r, err := c.ExportTraceProxy(ctx, &req)
 	if err != nil {
 		fmt.Printf("could not export traces from proxy: %v", err)
 	}

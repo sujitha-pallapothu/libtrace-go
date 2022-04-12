@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.19.1
-// source: api/proxyspan.proto
+// source: trace-proxy/proxyspan.proto
 
-package proxypb
+package trace_proxy
 
 import (
 	context "context"
@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type TraceProxyServiceClient interface {
 	// For performance reasons, it is recommended to keep this RPC
 	// alive for the entire life of the application.
-	Export(ctx context.Context, in *ExportTraceProxyServiceRequest, opts ...grpc.CallOption) (*ExportTraceProxyServiceResponse, error)
+	ExportTraceProxy(ctx context.Context, in *ExportTraceProxyServiceRequest, opts ...grpc.CallOption) (*ExportTraceProxyServiceResponse, error)
 }
 
 type traceProxyServiceClient struct {
@@ -35,9 +35,9 @@ func NewTraceProxyServiceClient(cc grpc.ClientConnInterface) TraceProxyServiceCl
 	return &traceProxyServiceClient{cc}
 }
 
-func (c *traceProxyServiceClient) Export(ctx context.Context, in *ExportTraceProxyServiceRequest, opts ...grpc.CallOption) (*ExportTraceProxyServiceResponse, error) {
+func (c *traceProxyServiceClient) ExportTraceProxy(ctx context.Context, in *ExportTraceProxyServiceRequest, opts ...grpc.CallOption) (*ExportTraceProxyServiceResponse, error) {
 	out := new(ExportTraceProxyServiceResponse)
-	err := c.cc.Invoke(ctx, "/proto.TraceProxyService/Export", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.TraceProxyService/ExportTraceProxy", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (c *traceProxyServiceClient) Export(ctx context.Context, in *ExportTracePro
 type TraceProxyServiceServer interface {
 	// For performance reasons, it is recommended to keep this RPC
 	// alive for the entire life of the application.
-	Export(context.Context, *ExportTraceProxyServiceRequest) (*ExportTraceProxyServiceResponse, error)
+	ExportTraceProxy(context.Context, *ExportTraceProxyServiceRequest) (*ExportTraceProxyServiceResponse, error)
 	mustEmbedUnimplementedTraceProxyServiceServer()
 }
 
@@ -58,8 +58,8 @@ type TraceProxyServiceServer interface {
 type UnimplementedTraceProxyServiceServer struct {
 }
 
-func (UnimplementedTraceProxyServiceServer) Export(context.Context, *ExportTraceProxyServiceRequest) (*ExportTraceProxyServiceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Export not implemented")
+func (UnimplementedTraceProxyServiceServer) ExportTraceProxy(context.Context, *ExportTraceProxyServiceRequest) (*ExportTraceProxyServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportTraceProxy not implemented")
 }
 func (UnimplementedTraceProxyServiceServer) mustEmbedUnimplementedTraceProxyServiceServer() {}
 
@@ -74,20 +74,20 @@ func RegisterTraceProxyServiceServer(s grpc.ServiceRegistrar, srv TraceProxyServ
 	s.RegisterService(&TraceProxyService_ServiceDesc, srv)
 }
 
-func _TraceProxyService_Export_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TraceProxyService_ExportTraceProxy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ExportTraceProxyServiceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TraceProxyServiceServer).Export(ctx, in)
+		return srv.(TraceProxyServiceServer).ExportTraceProxy(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.TraceProxyService/Export",
+		FullMethod: "/proto.TraceProxyService/ExportTraceProxy",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TraceProxyServiceServer).Export(ctx, req.(*ExportTraceProxyServiceRequest))
+		return srv.(TraceProxyServiceServer).ExportTraceProxy(ctx, req.(*ExportTraceProxyServiceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -100,10 +100,10 @@ var TraceProxyService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TraceProxyServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Export",
-			Handler:    _TraceProxyService_Export_Handler,
+			MethodName: "ExportTraceProxy",
+			Handler:    _TraceProxyService_ExportTraceProxy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/proxyspan.proto",
+	Metadata: "trace-proxy/proxyspan.proto",
 }
