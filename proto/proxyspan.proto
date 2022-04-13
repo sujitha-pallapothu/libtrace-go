@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 service TraceProxyService {
   // For performance reasons, it is recommended to keep this RPC
   // alive for the entire life of the application.
-  rpc Export(ExportTraceProxyServiceRequest) returns (ExportTraceProxyServiceResponse) {
+  rpc ExportTraceProxy(ExportTraceProxyServiceRequest) returns (ExportTraceProxyServiceResponse) {
     option (google.api.http) = {
       post: "/trace-proxy/api/v7/tenants/{tenantId}/traces",
       body: "*",

@@ -360,16 +360,14 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	// get some attributes common to this entire batch up front off the first
 	// valid event (some may be nil)
-	var apiHost string
-	var tenantId string
-	var token string
+	var apiHost, tenantId, token, dataset string
 
 	//var apiHost, writeKey, dataset string
 	for _, ev := range events {
 		if ev != nil {
 			apiHost = ev.APIHost
 			//writeKey = ev.APIKey
-			//dataset = ev.Dataset
+			dataset = ev.Dataset
 			tenantId = ev.APITenantId
 			token = ev.APIToken
 			break
@@ -562,7 +560,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 	//Add headers
 	//md := metadata.New(map[string]string{"authorization": token, "tenantId": tenantId})
-	ctx = metadata.AppendToOutgoingContext(ctx, "Authorization", token, "tenantId", tenantId)
+	ctx = metadata.AppendToOutgoingContext(ctx, "Authorization", token, "tenantId", tenantId, "dataset", dataset)
 
 	defer cancel()
 	r, err := c.ExportTraceProxy(ctx, &req)
