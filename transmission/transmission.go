@@ -406,171 +406,178 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	//	ServerName:         apiHost,
 	//	RootCAs:            cp,
 	//}
-
-	var conn *grpc.ClientConn
-	var err error
-	if b.useTls {
-		bInsecureSkip := b.useTlsInsecure
-
-		tlsCfg := &tls.Config{
-			InsecureSkipVerify: !bInsecureSkip,
+	retryCount := 3
+	for i := 0; i < retryCount; i++ {
+		if i > 0 {
+			b.metrics.Increment("send_retries")
 		}
+		var conn *grpc.ClientConn
+		var err error
+		if b.useTls {
+			bInsecureSkip := b.useTlsInsecure
 
-		tlsCreds := credentials.NewTLS(tlsCfg)
-		fmt.Println("Connecting with Tls")
-		conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
-
-		if err != nil {
-			fmt.Printf("Could not connect: %v", err)
-			return
-		}
-	} else {
-		fmt.Println("Connecting without Tls")
-		conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err != nil {
-			fmt.Printf("Could not connect: %v", err)
-			return
-		}
-	}
-
-	//auth, _ := oauth.NewApplicationDefault(context.Background(), "")
-	//conn, err := grpc.Dial(apiHost, grpc.WithPerRPCCredentials(auth))
-
-	defer conn.Close()
-	c := proxypb.NewTraceProxyServiceClient(conn)
-
-	req := proxypb.ExportTraceProxyServiceRequest{}
-
-	req.TenantId = tenantId
-	//err = json.Unmarshal(encEvs, &req.Items)
-	//if err != nil {
-	//	fmt.Printf("Error: %v \n", err)
-	//}
-
-	for _, ev := range events {
-		traceData := proxypb.ProxySpan{}
-		traceData.Data = &proxypb.Data{}
-		fmt.Printf("\nData: ", ev.Data)
-		traceData.Data.TraceTraceID, _ = ev.Data["traceTraceID"].(string)
-		traceData.Data.TraceParentID, _ = ev.Data["traceParentID"].(string)
-		traceData.Data.TraceSpanID, _ = ev.Data["traceSpanID"].(string)
-		traceData.Data.TraceLinkTraceID, _ = ev.Data["traceLinkTraceID"].(string)
-		traceData.Data.TraceLinkSpanID, _ = ev.Data["traceLinkSpanID"].(string)
-		traceData.Data.Type, _ = ev.Data["type"].(string)
-		traceData.Data.MetaType, _ = ev.Data["metaType"].(string)
-		traceData.Data.SpanName, _ = ev.Data["spanName"].(string)
-		traceData.Data.SpanKind, _ = ev.Data["spanKind"].(string)
-		traceData.Data.SpanNumEvents, _ = ev.Data["spanNumEvents"].(int64)
-		traceData.Data.SpanNumLinks, _ = ev.Data["spanNumLinks"].(int64)
-		traceData.Data.StatusCode, _ = ev.Data["statusCode"].(int64)
-		traceData.Data.StatusMessage, _ = ev.Data["statusMessage"].(string)
-		traceData.Data.Time, _ = ev.Data["time"].(int64)
-		traceData.Data.DurationMs, _ = ev.Data["durationMs"].(float64)
-		traceData.Data.StartTime, _ = ev.Data["startTime"].(int64)
-		traceData.Data.EndTime, _ = ev.Data["endTime"].(int64)
-		traceData.Data.Error, _ = ev.Data["error"].(bool)
-		traceData.Data.FromProxy, _ = ev.Data["fromProxy"].(bool)
-		traceData.Data.ParentName, _ = ev.Data["parentName"].(string)
-		traceData.Timestamp = ev.Timestamp.String()
-
-		resourceAttr, _ := ev.Data["resourceAttributes"].(map[string]interface{})
-		for key, val := range resourceAttr {
-			resourceAttrKeyVal := proxypb.KeyValue{}
-			resourceAttrKeyVal.Key = key
-
-			switch v := val.(type) {
-			case nil:
-				fmt.Println("x is nil") // here v has type interface{}
-			case string:
-				resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
-			case bool:
-				resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
-			case int64:
-				resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
-			default:
-				fmt.Println("type unknown: ", v) // here v has type interface{}
+			tlsCfg := &tls.Config{
+				InsecureSkipVerify: !bInsecureSkip,
 			}
 
-			traceData.Data.ResourceAttributes = append(traceData.Data.ResourceAttributes, &resourceAttrKeyVal)
-		}
-		spanAttr, _ := ev.Data["spanAttributes"].(map[string]interface{})
-		for key, val := range spanAttr {
-			spanAttrKeyVal := proxypb.KeyValue{}
-			spanAttrKeyVal.Key = key
-			//spanAttrKeyVal.Value = val.(*proxypb.AnyValue)
+			tlsCreds := credentials.NewTLS(tlsCfg)
+			fmt.Println("Connecting with Tls")
+			conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
 
-			switch v := val.(type) {
-			case nil:
-				fmt.Println("x is nil") // here v has type interface{}
-			case string:
-				spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
-			case bool:
-				spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
-			case int64:
-				spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
-			default:
-				fmt.Println("type unknown: ", v) // here v has type interface{}
-			}
-
-			traceData.Data.SpanAttributes = append(traceData.Data.SpanAttributes, &spanAttrKeyVal)
-		}
-
-		eventAttr, _ := ev.Data["eventAttributes"].(map[string]interface{})
-		for key, val := range eventAttr {
-			eventAttrKeyVal := proxypb.KeyValue{}
-			eventAttrKeyVal.Key = key
-			//spanAttrKeyVal.Value = val.(*proxypb.AnyValue)
-
-			switch v := val.(type) {
-			case nil:
-				fmt.Println("x is nil") // here v has type interface{}
-			case string:
-				eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
-			case bool:
-				eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
-			case int64:
-				eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
-			default:
-				fmt.Println("type unknown: ", v) // here v has type interface{}
-			}
-
-			traceData.Data.EventAttributes = append(traceData.Data.EventAttributes, &eventAttrKeyVal)
-		}
-
-		req.Items = append(req.Items, &traceData)
-
-		/*var tracedata []proxypb.Data
-		err = json.Unmarshal(encEvs, &tracedata)
 			if err != nil {
-				fmt.Printf("Error: %v \n", err)
-			} else {
-				for _,trData:= range tracedata{
-					traceData := proxypb.ProxySpan{}
-					traceData.Data = &trData
-					traceData.Time = uint64(ev.Timestamp.Unix())
-					req.Items = append(req.Items, &traceData)
-				}
+				fmt.Printf("Could not connect: %v", err)
+				return
 			}
-		*/
+		} else {
+			fmt.Println("Connecting without Tls")
+			conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				fmt.Printf("Could not connect: %v", err)
+				return
+			}
+		}
 
+		//auth, _ := oauth.NewApplicationDefault(context.Background(), "")
+		//conn, err := grpc.Dial(apiHost, grpc.WithPerRPCCredentials(auth))
+
+		defer conn.Close()
+		c := proxypb.NewTraceProxyServiceClient(conn)
+
+		req := proxypb.ExportTraceProxyServiceRequest{}
+
+		req.TenantId = tenantId
+		//err = json.Unmarshal(encEvs, &req.Items)
+		//if err != nil {
+		//	fmt.Printf("Error: %v \n", err)
+		//}
+
+		for _, ev := range events {
+			traceData := proxypb.ProxySpan{}
+			traceData.Data = &proxypb.Data{}
+			fmt.Printf("\nData: ", ev.Data)
+			traceData.Data.TraceTraceID, _ = ev.Data["traceTraceID"].(string)
+			traceData.Data.TraceParentID, _ = ev.Data["traceParentID"].(string)
+			traceData.Data.TraceSpanID, _ = ev.Data["traceSpanID"].(string)
+			traceData.Data.TraceLinkTraceID, _ = ev.Data["traceLinkTraceID"].(string)
+			traceData.Data.TraceLinkSpanID, _ = ev.Data["traceLinkSpanID"].(string)
+			traceData.Data.Type, _ = ev.Data["type"].(string)
+			traceData.Data.MetaType, _ = ev.Data["metaType"].(string)
+			traceData.Data.SpanName, _ = ev.Data["spanName"].(string)
+			traceData.Data.SpanKind, _ = ev.Data["spanKind"].(string)
+			traceData.Data.SpanNumEvents, _ = ev.Data["spanNumEvents"].(int64)
+			traceData.Data.SpanNumLinks, _ = ev.Data["spanNumLinks"].(int64)
+			traceData.Data.StatusCode, _ = ev.Data["statusCode"].(int64)
+			traceData.Data.StatusMessage, _ = ev.Data["statusMessage"].(string)
+			traceData.Data.Time, _ = ev.Data["time"].(int64)
+			traceData.Data.DurationMs, _ = ev.Data["durationMs"].(float64)
+			traceData.Data.StartTime, _ = ev.Data["startTime"].(int64)
+			traceData.Data.EndTime, _ = ev.Data["endTime"].(int64)
+			traceData.Data.Error, _ = ev.Data["error"].(bool)
+			traceData.Data.FromProxy, _ = ev.Data["fromProxy"].(bool)
+			traceData.Data.ParentName, _ = ev.Data["parentName"].(string)
+			traceData.Timestamp = ev.Timestamp.String()
+
+			resourceAttr, _ := ev.Data["resourceAttributes"].(map[string]interface{})
+			for key, val := range resourceAttr {
+				resourceAttrKeyVal := proxypb.KeyValue{}
+				resourceAttrKeyVal.Key = key
+
+				switch v := val.(type) {
+				case nil:
+					fmt.Println("x is nil") // here v has type interface{}
+				case string:
+					resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
+				case bool:
+					resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
+				case int64:
+					resourceAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
+				default:
+					fmt.Println("type unknown: ", v) // here v has type interface{}
+				}
+
+				traceData.Data.ResourceAttributes = append(traceData.Data.ResourceAttributes, &resourceAttrKeyVal)
+			}
+			spanAttr, _ := ev.Data["spanAttributes"].(map[string]interface{})
+			for key, val := range spanAttr {
+				spanAttrKeyVal := proxypb.KeyValue{}
+				spanAttrKeyVal.Key = key
+				//spanAttrKeyVal.Value = val.(*proxypb.AnyValue)
+
+				switch v := val.(type) {
+				case nil:
+					fmt.Println("x is nil") // here v has type interface{}
+				case string:
+					spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
+				case bool:
+					spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
+				case int64:
+					spanAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
+				default:
+					fmt.Println("type unknown: ", v) // here v has type interface{}
+				}
+
+				traceData.Data.SpanAttributes = append(traceData.Data.SpanAttributes, &spanAttrKeyVal)
+			}
+
+			eventAttr, _ := ev.Data["eventAttributes"].(map[string]interface{})
+			for key, val := range eventAttr {
+				eventAttrKeyVal := proxypb.KeyValue{}
+				eventAttrKeyVal.Key = key
+				//spanAttrKeyVal.Value = val.(*proxypb.AnyValue)
+
+				switch v := val.(type) {
+				case nil:
+					fmt.Println("x is nil") // here v has type interface{}
+				case string:
+					eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_StringValue{StringValue: val.(string)}} // here v has type int
+				case bool:
+					eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_BoolValue{BoolValue: val.(bool)}} // here v has type interface{}
+				case int64:
+					eventAttrKeyVal.Value = &proxypb.AnyValue{Value: &proxypb.AnyValue_IntValue{IntValue: val.(int64)}} // here v has type interface{}
+				default:
+					fmt.Println("type unknown: ", v) // here v has type interface{}
+				}
+
+				traceData.Data.EventAttributes = append(traceData.Data.EventAttributes, &eventAttrKeyVal)
+			}
+
+			req.Items = append(req.Items, &traceData)
+
+			/*var tracedata []proxypb.Data
+			err = json.Unmarshal(encEvs, &tracedata)
+				if err != nil {
+					fmt.Printf("Error: %v \n", err)
+				} else {
+					for _,trData:= range tracedata{
+						traceData := proxypb.ProxySpan{}
+						traceData.Data = &trData
+						traceData.Time = uint64(ev.Timestamp.Unix())
+						req.Items = append(req.Items, &traceData)
+					}
+				}
+			*/
+
+		}
+
+		// Contact the server and print out its response.
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+		//Add headers
+		//md := metadata.New(map[string]string{"authorization": token, "tenantId": tenantId})
+		ctx = metadata.AppendToOutgoingContext(ctx, "Authorization", token, "tenantId", tenantId, "dataset", dataset)
+
+		defer cancel()
+		r, err := c.ExportTraceProxy(ctx, &req)
+
+		if err != nil {
+			fmt.Printf("could not export traces from proxy in %v try: %v",i, err)
+			continue
+		}
+		fmt.Printf("\ntrace proxy response: %s\n", r.String())
+		fmt.Printf("\ntrace proxy response msg: %s\n", r.GetMessage())
+		fmt.Printf("\ntrace proxy response status: %s\n", r.GetStatus())
+		break
 	}
-
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-
-	//Add headers
-	//md := metadata.New(map[string]string{"authorization": token, "tenantId": tenantId})
-	ctx = metadata.AppendToOutgoingContext(ctx, "Authorization", token, "tenantId", tenantId, "dataset", dataset)
-
-	defer cancel()
-	r, err := c.ExportTraceProxy(ctx, &req)
-	if err != nil {
-		fmt.Printf("could not export traces from proxy: %v", err)
-	}
-
-	fmt.Printf("\ntrace proxy response: %s\n", r.String())
-	fmt.Printf("\ntrace proxy response msg: %s\n", r.GetMessage())
-	fmt.Printf("\ntrace proxy response status: %s\n", r.GetStatus())
 
 	/*
 		url, err := url.Parse(apiHost)
