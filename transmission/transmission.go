@@ -426,6 +426,8 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 			if err != nil {
 				fmt.Printf("Could not connect: %v", err)
+				b.metrics.Increment("send_errors")
+
 				return
 			}
 		} else {
@@ -433,6 +435,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 			conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
 				fmt.Printf("Could not connect: %v", err)
+				b.metrics.Increment("send_errors")
 				return
 			}
 		}
@@ -570,12 +573,16 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		r, err := c.ExportTraceProxy(ctx, &req)
 
 		if err != nil {
-			fmt.Printf("could not export traces from proxy in %v try: %v",i, err)
+			fmt.Printf("could not export traces from proxy in %v try: %v", i, err)
 			continue
 		}
 		fmt.Printf("\ntrace proxy response: %s\n", r.String())
 		fmt.Printf("\ntrace proxy response msg: %s\n", r.GetMessage())
 		fmt.Printf("\ntrace proxy response status: %s\n", r.GetStatus())
+
+		if r.GetStatus() == "" {
+			b.metrics.Increment("send_errors")
+		}
 		break
 	}
 
