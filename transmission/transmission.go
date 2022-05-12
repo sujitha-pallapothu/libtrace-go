@@ -580,6 +580,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 			b.metrics.Increment( "counterResponseErrors")
 			continue
 		}else{
+			fmt.Println("counter response got")
 			b.metrics.Increment("counterResponse20x")
 		}
 
