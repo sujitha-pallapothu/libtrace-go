@@ -357,6 +357,9 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	if numEncoded == 0 {
 		return
 	}
+	//b.metrics.Register(d.Name+counterEnqueueErrors, "counter")
+	//d.Metrics.Register(d.Name+counterResponse20x, "counter")
+	//d.Metrics.Register(d.Name+counterResponseErrors, "counter")
 
 	// get some attributes common to this entire batch up front off the first
 	// valid event (some may be nil)
@@ -571,20 +574,40 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 		defer cancel()
 		r, err := c.ExportTraceProxy(ctx, &req)
-
-		if err != nil {
+		if err != nil ||  r.GetStatus() == ""   {
 			fmt.Printf("could not export traces from proxy in %v try: %v", i, err)
+			b.metrics.Increment("send_errors")
+			b.metrics.Increment( "counterResponseErrors")
 			continue
+		}else{
+			b.metrics.Increment("counterResponse20x")
 		}
+
 		fmt.Printf("\ntrace proxy response: %s\n", r.String())
 		fmt.Printf("\ntrace proxy response msg: %s\n", r.GetMessage())
 		fmt.Printf("\ntrace proxy response status: %s\n", r.GetStatus())
-
-		if r.GetStatus() == "" {
-			b.metrics.Increment("send_errors")
-		}
 		break
 	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	/*
 		url, err := url.Parse(apiHost)
