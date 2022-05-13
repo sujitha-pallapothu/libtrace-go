@@ -580,11 +580,12 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 		if err != nil ||  r.GetStatus() == ""   {
 			fmt.Printf("could not export traces from proxy in %v try: %v", i, err)
 			b.metrics.Increment("send_errors")
-			b.metrics.Increment( "counterResponseErrors")
+			//b.metrics.Increment( "counterResponseErrors")
 			continue
 		}else{
+			b.metrics.Increment("batches_sent")
 			fmt.Println("counter response got")
-			b.metrics.Increment("counterResponse20x")
+			//b.metrics.Increment("counterResponse20x")
 		}
 
 		fmt.Printf("\ntrace proxy response: %s\n", r.String())
