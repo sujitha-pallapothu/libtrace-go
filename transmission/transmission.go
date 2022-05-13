@@ -341,8 +341,8 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	//	start = b.testNower.Now()
 
 	//}
-	b.metrics.Register("counterResponseErrors","counter")
-	b.metrics.Register("counterResponse20x","counter")
+	//b.metrics.Register("counterResponseErrors","counter")
+	//b.metrics.Register("counterResponse20x","counter")
 	if len(events) == 0 {
 		// we managed to create a batch key with no events. odd. move on.
 		return
