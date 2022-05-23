@@ -45,7 +45,7 @@ const (
 // Version is the build version, set by libhoney
 var Version string
 
-type Honeycomb struct {
+type Opsramptraceproxy struct {
 	// how many events to collect into a batch before sending
 	MaxBatchSize uint
 
@@ -92,7 +92,7 @@ type Honeycomb struct {
 	UseTlsInsecure bool
 }
 
-func (h *Honeycomb) Start() error {
+func (h *Opsramptraceproxy) Start() error {
 	if h.Logger == nil {
 		h.Logger = &nullLogger{}
 	}
@@ -127,7 +127,7 @@ func (h *Honeycomb) Start() error {
 	return h.muster.Start()
 }
 
-func (h *Honeycomb) createMuster() *muster.Client {
+func (h *Opsramptraceproxy) createMuster() *muster.Client {
 	m := new(muster.Client)
 	m.MaxBatchSize = h.MaxBatchSize
 	m.BatchTimeout = h.BatchTimeout
@@ -137,14 +137,14 @@ func (h *Honeycomb) createMuster() *muster.Client {
 	return m
 }
 
-func (h *Honeycomb) Stop() error {
-	h.Logger.Printf("Honeycomb transmission stopping")
+func (h *Opsramptraceproxy) Stop() error {
+	h.Logger.Printf("Opsramptraceproxy transmission stopping")
 	err := h.muster.Stop()
 	close(h.responses)
 	return err
 }
 
-func (h *Honeycomb) Flush() (err error) {
+func (h *Opsramptraceproxy) Flush() (err error) {
 	// There isn't a way to flush a muster.Client directly, so we have to stop
 	// the old one (which has a side-effect of flushing the data) and make a new
 	// one. We start the new one and swap it with the old one so that we minimize
@@ -165,7 +165,7 @@ func (h *Honeycomb) Flush() (err error) {
 // it completes. Similarly, if BlockOnSend is set and the pending work is more
 // than the PendingWorkCapacity, this will block a Flush until more pending
 // work can be enqueued.
-func (h *Honeycomb) Add(ev *Event) {
+func (h *Opsramptraceproxy) Add(ev *Event) {
 	if h.tryAdd(ev) {
 		h.Metrics.Increment("messages_queued")
 		return
@@ -182,7 +182,7 @@ func (h *Honeycomb) Add(ev *Event) {
 
 // tryAdd attempts to add ev to the underlying muster. It returns false if this
 // was unsucessful because the muster queue (muster.Work) is full.
-func (h *Honeycomb) tryAdd(ev *Event) bool {
+func (h *Opsramptraceproxy) tryAdd(ev *Event) bool {
 	h.musterLock.RLock()
 	defer h.musterLock.RUnlock()
 
@@ -205,11 +205,11 @@ func (h *Honeycomb) tryAdd(ev *Event) bool {
 	}
 }
 
-func (h *Honeycomb) TxResponses() chan Response {
+func (h *Opsramptraceproxy) TxResponses() chan Response {
 	return h.responses
 }
 
-func (h *Honeycomb) SendResponse(r Response) bool {
+func (h *Opsramptraceproxy) SendResponse(r Response) bool {
 	if h.BlockOnResponse {
 		h.responses <- r
 	} else {
@@ -1090,7 +1090,7 @@ func (b *batchAgg) fireBatch(events []*Event) {
 		}
 
 		req.Header.Set("User-Agent", userAgent)
-		req.Header.Add("X-Honeycomb-Team", writeKey)
+		req.Header.Add("X-Opsramptraceproxy-Team", writeKey)
 		// send off batch!
 		resp, err = b.httpClient.Do(req)
 		if reader, ok := reqBody.(*pooledReader); ok {

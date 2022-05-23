@@ -207,7 +207,7 @@ func Init(conf Config) error {
 			responses:       make(chan transmission.Response, 2*conf.PendingWorkCapacity),
 		}
 	default:
-		t = &transmission.Honeycomb{
+		t = &transmission.Opsramptraceproxy{
 			MaxBatchSize:         conf.MaxBatchSize,
 			BatchTimeout:         conf.SendFrequency,
 			MaxConcurrentBatches: conf.MaxConcurrentBatches,
@@ -313,7 +313,7 @@ func VerifyAPIKey(config Config) (team string, err error) {
 		return team, err
 	}
 	req.Header.Set("User-Agent", UserAgentAddition)
-	req.Header.Add("X-Honeycomb-Team", config.APIKey)
+	req.Header.Add("X-Opsramptraceproxy-Team", config.APIKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -325,7 +325,7 @@ func VerifyAPIKey(config Config) (team string, err error) {
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return team, fmt.Errorf(`Abnormal non-200 response verifying Honeycomb write key: %d
+		return team, fmt.Errorf(`Abnormal non-200 response verifying Opsramptraceproxy write key: %d
 Response body: %s`, resp.StatusCode, string(body))
 	}
 	ret := map[string]string{}
@@ -803,18 +803,18 @@ func (e *Event) SendPresampled() (err error) {
 	// possible to send events without an API key etc
 
 	senderType := reflect.TypeOf(e.client.transmission).String()
-	isHoneycombSender := strings.HasSuffix(senderType, "transmission.Honeycomb")
+	isOpsrampSender := strings.HasSuffix(senderType, "transmission.Opsramptraceproxy")
 	isMockSender := strings.HasSuffix(senderType, "transmission.MockSender")
-	if isHoneycombSender || isMockSender {
+	if isOpsrampSender || isMockSender {
 		if e.APIHost == "" {
-			return errors.New("No APIHost for Honeycomb. Can't send to the Great Unknown.")
+			return errors.New("No APIHost for Opsramptraceproxy. Can't send to the Great Unknown.")
 		}
 		if e.WriteKey == "" {
 			return errors.New("No WriteKey specified. Can't send event.")
 		}
 	}
 	if e.Dataset == "" {
-		return errors.New("No Dataset for Honeycomb. Can't send datasetless.")
+		return errors.New("No Dataset for Opsramptraceproxy. Can't send datasetless.")
 	}
 
 	// Mark the event as sent, no more field changes will be applied.
