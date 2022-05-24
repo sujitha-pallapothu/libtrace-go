@@ -494,7 +494,7 @@ func (f *FancyFakeRoundTripper) RoundTrip(r *http.Request) (*http.Response, erro
 		// respHeader is apihost,writekey,dataset
 		headerKeys := strings.Split(reqHeader, ",")
 		expectedURL, _ := url.Parse(fmt.Sprintf("%s/1/batch/%s", headerKeys[0], headerKeys[2]))
-		if r.Header.Get("X-Honeycomb-Team") == headerKeys[1] && r.URL.String() == expectedURL.String() {
+		if r.Header.Get("X-Opsramp-Team") == headerKeys[1] && r.URL.String() == expectedURL.String() {
 			if r.GetBody == nil {
 				panic("Retries must be possible. Set GetBody to fix this.")
 			}
@@ -534,7 +534,7 @@ func (f *FancyFakeRoundTripper) RoundTrip(r *http.Request) (*http.Response, erro
 		// respHeader is apihost,writekey,dataset
 		headerKeys := strings.Split(respHeader, ",")
 		expectedURL, _ := url.Parse(fmt.Sprintf("%s/1/batch/%s", headerKeys[0], headerKeys[2]))
-		if r.Header.Get("X-Honeycomb-Team") == headerKeys[1] && r.URL.String() == expectedURL.String() {
+		if r.Header.Get("X-Opsramp-Team") == headerKeys[1] && r.URL.String() == expectedURL.String() {
 			f.resp.Body = ioutil.NopCloser(strings.NewReader(respBody))
 			responseFound = true
 			break

@@ -9,11 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"net/url"
-	"path"
 	"reflect"
 	"sort"
 	"strings"
@@ -284,7 +281,7 @@ func (to *transitionOutput) SendResponse(r transmission.Response) bool {
 // VerifyWriteKey is the deprecated call to validate a Opsramp API key.
 //
 // Deprecated: Please use VerifyAPIKey instead.
-func VerifyWriteKey(config Config) (team string, err error) {
+/*func VerifyWriteKey(config Config) (team string, err error) {
 	return VerifyAPIKey(config)
 }
 
@@ -313,7 +310,7 @@ func VerifyAPIKey(config Config) (team string, err error) {
 		return team, err
 	}
 	req.Header.Set("User-Agent", UserAgentAddition)
-	//req.Header.Add("X-Opsramptraceproxy-Team", config.APIKey)
+	//req.Header.Add("X-Opsramp-Team", config.APIKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -334,7 +331,7 @@ Response body: %s`, resp.StatusCode, string(body))
 	}
 
 	return ret["team_slug"], nil
-}
+}*/
 
 // Deprecated: Response is deprecated; please use transmission.Response instead.
 type Response struct {

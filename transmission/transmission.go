@@ -1090,7 +1090,7 @@ func (b *batchAgg) fireBatch(events []*Event) {
 		}
 
 		req.Header.Set("User-Agent", userAgent)
-		req.Header.Add("X-Opsramptraceproxy-Team", writeKey)
+		//req.Header.Add("X-Opsramp-Team", writeKey)
 		// send off batch!
 		resp, err = b.httpClient.Do(req)
 		if reader, ok := reqBody.(*pooledReader); ok {
