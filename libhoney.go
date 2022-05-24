@@ -245,7 +245,7 @@ type transitionOutput struct {
 func (to *transitionOutput) Add(ev *transmission.Event) {
 	origEvent := &Event{
 		APIHost:     ev.APIHost,
-		WriteKey:    ev.APIKey,
+	//	WriteKey:    ev.APIKey,
 		Dataset:     ev.Dataset,
 		SampleRate:  ev.SampleRate,
 		Timestamp:   ev.Timestamp,
@@ -342,7 +342,7 @@ type Response struct {
 // specify overrides of the config settings.
 type Event struct {
 	// WriteKey, if set, overrides whatever is found in Config
-	WriteKey string
+	//WriteKey string
 	// Dataset, if set, overrides whatever is found in Config
 	Dataset string
 	// SampleRate, if set, overrides whatever is found in Config
@@ -806,9 +806,9 @@ func (e *Event) SendPresampled() (err error) {
 		if e.APIHost == "" {
 			return errors.New("No APIHost for Opsramptraceproxy. Can't send to the Great Unknown.")
 		}
-		if e.WriteKey == "" {
-			return errors.New("No WriteKey specified. Can't send event.")
-		}
+		//if e.WriteKey == "" {
+		//	return errors.New("No WriteKey specified. Can't send event.")
+		//}
 	}
 	if e.Dataset == "" {
 		return errors.New("No Dataset for Opsramptraceproxy. Can't send datasetless.")
@@ -820,7 +820,7 @@ func (e *Event) SendPresampled() (err error) {
 	e.client.ensureTransmission()
 	txEvent := &transmission.Event{
 		APIHost:     e.APIHost,
-		APIKey:      e.WriteKey,
+		//APIKey:      e.WriteKey,
 		APIToken:    e.APIToken,
 		APITenantId: e.APITenantId,
 		Dataset:     e.Dataset,
@@ -834,14 +834,14 @@ func (e *Event) SendPresampled() (err error) {
 }
 
 // returns a human friendly string representation of the event
-func (e *Event) String() string {
-	masked := e.WriteKey
-	if e.WriteKey != "" && len(e.WriteKey) > 4 {
-		len := len(e.WriteKey) - 4
-		masked = strings.Repeat("X", len) + e.WriteKey[len:]
-	}
-	return fmt.Sprintf("{WriteKey:%s Dataset:%s SampleRate:%d APIHost:%s Timestamp:%v fieldHolder:%+v sent:%t}", masked, e.Dataset, e.SampleRate, e.APIHost, e.Timestamp, e.fieldHolder.String(), e.sent)
-}
+//func (e *Event) String() string {
+//	masked := e.WriteKey
+//	if e.WriteKey != "" && len(e.WriteKey) > 4 {
+//		len := len(e.WriteKey) - 4
+//		masked = strings.Repeat("X", len) + e.WriteKey[len:]
+//	}
+//	return fmt.Sprintf("{WriteKey:%s Dataset:%s SampleRate:%d APIHost:%s Timestamp:%v fieldHolder:%+v sent:%t}", masked, e.Dataset, e.SampleRate, e.APIHost, e.Timestamp, e.fieldHolder.String(), e.sent)
+//}
 
 // returns true if the sample should be dropped
 func shouldDrop(rate uint) bool {
@@ -886,7 +886,7 @@ func (b *Builder) SendNow(data interface{}) error {
 // field values, and configuration inherited from the builder.
 func (b *Builder) NewEvent() *Event {
 	e := &Event{
-		WriteKey:   b.WriteKey,
+		//WriteKey:   b.WriteKey,
 		Dataset:    b.Dataset,
 		SampleRate: b.SampleRate,
 		APIHost:    b.APIHost,
