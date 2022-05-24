@@ -29,13 +29,13 @@ type Client struct {
 // a given transmission Sender and should be specified there if the defaults
 // need to be overridden.
 type ClientConfig struct {
-	// APIKey is the Honeycomb authentication token. If it is specified during
+	// APIKey is the opsramp authentication token. If it is specified during
 	// libhoney initialization, it will be used as the default API key for all
 	// events. If absent, API key must be explicitly set on a builder or
-	// event. Find your team's API keys at https://ui.honeycomb.io/account
+	// event. Find your team's API keys at https://ui.opsramp.io/account
 	APIKey string
 
-	// Dataset is the name of the Honeycomb dataset to which to send these events.
+	// Dataset is the name of the opsramp dataset to which to send these events.
 	// If it is specified during libhoney initialization, it will be used as the
 	// default dataset for all events. If absent, dataset must be explicitly set
 	// on a builder or event.
@@ -46,13 +46,13 @@ type ClientConfig struct {
 	// Send() is called, you would specify 250 here.
 	SampleRate uint
 
-	// APIHost is the hostname for the Honeycomb API server to which to send this
-	// event. default: https://api.honeycomb.io/
+	// APIHost is the hostname for the Opsramp API server to which to send this
+	// event. default: https://api.opsramp.io/
 	APIHost string
 
 	// Transmission allows you to override what happens to events after you call
 	// Send() on them. By default, events are asynchronously sent to the
-	// Honeycomb API. You can use the MockOutput included in this package in
+	// Opsramp API. You can use the MockOutput included in this package in
 	// unit tests, or use the transmission.WriterSender to write events to
 	// STDOUT or to a file when developing locally.
 	Transmission transmission.Sender

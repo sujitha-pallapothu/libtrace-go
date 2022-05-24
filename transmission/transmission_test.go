@@ -43,10 +43,10 @@ func (t *timeoutErr) Timeout() bool {
 	return true
 }
 
-func TestEmptyHoneycombTransmission(t *testing.T) {
-	// All fields on the Honeycomb transmission are optional; an empty honeycomb
+func TestEmptyOpsrampTransmission(t *testing.T) {
+	// All fields on the Opsramp transmission are optional; an empty Opsramp
 	// transmission should work (if not very well because of zero length channels)
-	tx := &Honeycomb{}
+	tx := &Opsramp{}
 	tx.Start()
 	tx.Add(&Event{
 		APIKey:  "kiddly",
@@ -56,7 +56,7 @@ func TestEmptyHoneycombTransmission(t *testing.T) {
 }
 
 func TestHnyTxAdd(t *testing.T) {
-	hnyTx := &Honeycomb{
+	hnyTx := &Opsramp{
 		Logger:  &nullLogger{},
 		Metrics: &nullMetrics{},
 		muster:  new(muster.Client),
@@ -136,7 +136,7 @@ func (f *FakeRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	}
 	f.reqBody = string(bodyBytes)
 
-	// Honeycomb servers response to msgpack requests with msgpack responses,
+	// Opsramp servers response to msgpack requests with msgpack responses,
 	// but for convenience our tests speak json. Translate as needed.
 	if r.Header.Get("Content-Type") == "application/msgpack" &&
 		f.resp != nil &&
@@ -230,7 +230,7 @@ func TestTxSendSingle(t *testing.T) {
 		testEquals(t, frt.req.URL.String(), expectedURL)
 		versionedUserAgent := fmt.Sprintf("libhoney-go/%s", Version)
 		testEquals(t, frt.req.Header.Get("User-Agent"), versionedUserAgent)
-		testEquals(t, frt.req.Header.Get("X-Honeycomb-Team"), e.APIKey)
+		testEquals(t, frt.req.Header.Get("X-Opsramp-Team"), e.APIKey)
 		buf := &bytes.Buffer{}
 		g := zstd.NewWriter(buf)
 		if doMsgpack {

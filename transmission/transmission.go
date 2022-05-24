@@ -1,6 +1,6 @@
 package transmission
 
-// txClient handles the transmission of events to Honeycomb.
+// txClient handles the transmission of events to Opsramp.
 //
 // Overview
 //
@@ -669,7 +669,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 			}
 
 			req.Header.Set("User-Agent", userAgent)
-			//req.Header.Add("X-Honeycomb-Team", writeKey)
+			//req.Header.Add("X-Opsramp-Team", writeKey)
 			// send off batch!
 			resp, err = b.httpClient.Do(req)
 			if reader, ok := reqBody.(*pooledReader); ok {
@@ -882,7 +882,7 @@ func (b *batchAgg) exportBatch(events []*Event) {
 		}
 
 		req.Header.Set("User-Agent", userAgent)
-		//req.Header.Add("X-Honeycomb-Team", writeKey)
+		//req.Header.Add("X-Opsramp-Team", writeKey)
 		// send off batch!
 		resp, err = b.httpClient.Do(req)
 		if reader, ok := reqBody.(*pooledReader); ok {
@@ -1408,7 +1408,7 @@ func init() {
 		// Compression level 2 gives a good balance of speed and compression.
 		zstd.WithEncoderLevel(zstd.EncoderLevelFromZstd(2)),
 		// zstd allocates 2 * GOMAXPROCS * window size, so use a small window.
-		// Most honeycomb messages are smaller than this.
+		// Most Opsramp messages are smaller than this.
 		zstd.WithWindowSize(1<<16),
 	)
 	if err != nil {

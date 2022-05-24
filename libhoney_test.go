@@ -634,7 +634,7 @@ func TestSendPresampledErrors(t *testing.T) {
 				},
 				client: dc,
 			},
-			expErr: errors.New("No APIHost for Honeycomb. Can't send to the Great Unknown."),
+			expErr: errors.New("No APIHost for Opsramp. Can't send to the Great Unknown."),
 		},
 		{
 			ev: &Event{
@@ -655,7 +655,7 @@ func TestSendPresampledErrors(t *testing.T) {
 				WriteKey: "bar",
 				client:   dc,
 			},
-			expErr: errors.New("No Dataset for Honeycomb. Can't send datasetless."),
+			expErr: errors.New("No Dataset for Opsramp. Can't send datasetless."),
 		},
 		{
 			ev: &Event{
@@ -981,7 +981,7 @@ func Example() {
 
 func ExampleAddDynamicField() {
 	// adds the number of goroutines running at event
-	// creation time to every event sent to Honeycomb.
+	// creation time to every event sent to Opsramp.
 	AddDynamicField("num_goroutines",
 		func() interface{} { return runtime.NumGoroutine() })
 }

@@ -13,7 +13,7 @@ import (
 	libhoney "github.com/honeycombio/libhoney-go"
 )
 
-// This example reads JSON blobs from a file and sends them as Honeycomb events.
+// This example reads JSON blobs from a file and sends them as Opsramp events.
 // It will log the success or failure of each sent event to STDOUT.
 // The expectation of the file is that it has one JSON blob per line. Each
 // JSON blob must have a field named timestamp that includes a time objected
@@ -79,7 +79,7 @@ func main() {
 
 	libhoney.Close()
 	wg.Wait()
-	fmt.Println("All done! Go check Honeycomb https://ui.honeycomb.io/ to see your data.")
+	fmt.Println("All done! Go check Opsramp https://ui.honeycomb.io/ to see your data.")
 }
 
 func readResponses(wg *sync.WaitGroup, responses chan libhoney.Response) {
@@ -87,9 +87,9 @@ func readResponses(wg *sync.WaitGroup, responses chan libhoney.Response) {
 	for r := range responses {
 		if r.StatusCode >= 200 && r.StatusCode < 300 {
 			id := r.Metadata.(string)
-			fmt.Printf("Successfully sent event %s to Honeycomb\n", id)
+			fmt.Printf("Successfully sent event %s to Opsramp\n", id)
 		} else {
-			fmt.Printf("Error sending event to Honeycomb! Code %d, err %v and response body %s\n",
+			fmt.Printf("Error sending event to Opsramp! Code %d, err %v and response body %s\n",
 				r.StatusCode, r.Err, r.Body)
 		}
 	}

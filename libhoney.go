@@ -1,4 +1,4 @@
-// Copyright 2016 Honeycomb, Hound Technology, Inc. All rights reserved.
+// Copyright 2016 Opsramp, Hound Technology, Inc. All rights reserved.
 // Use of this source code is governed by the Apache License 2.0
 // license that can be found in the LICENSE file.
 
@@ -31,7 +31,7 @@ func init() {
 
 const (
 	defaultSampleRate = 1
-	defaultAPIHost    = "https://api.honeycomb.io/"
+	defaultAPIHost    = "https://api.Opsramp.io/"
 	defaultDataset    = "libhoney-go dataset"
 	version           = "1.15.8"
 
@@ -76,18 +76,18 @@ var UserAgentAddition string
 // Config specifies settings for initializing the library.
 type Config struct {
 
-	// APIKey is the Honeycomb authentication token. If it is specified during
+	// APIKey is the Opsramp authentication token. If it is specified during
 	// libhoney initialization, it will be used as the default API key for all
 	// events. If absent, API key must be explicitly set on a builder or
-	// event. Find your team's API keys at https://ui.honeycomb.io/account
+	// event. Find your team's API keys at https://ui.Opsramp.io/account
 	APIKey string
 
-	// WriteKey is the deprecated name for the Honeycomb authentication token.
+	// WriteKey is the deprecated name for the Opsramp authentication token.
 	//
 	// Deprecated: Use APIKey instead. If both are set, APIKey takes precedence.
 	WriteKey string
 
-	// Dataset is the name of the Honeycomb dataset to which to send these events.
+	// Dataset is the name of the Opsramp dataset to which to send these events.
 	// If it is specified during libhoney initialization, it will be used as the
 	// default dataset for all events. If absent, dataset must be explicitly set
 	// on a builder or event.
@@ -98,8 +98,8 @@ type Config struct {
 	// Send() is called, you would specify 250 here.
 	SampleRate uint
 
-	// APIHost is the hostname for the Honeycomb API server to which to send this
-	// event. default: https://api.honeycomb.io/
+	// APIHost is the hostname for the Opsramp API server to which to send this
+	// event. default: https://api.Opsramp.io/
 	APIHost string
 
 	// BlockOnSend determines if libhoney should block or drop packets that exceed
@@ -110,7 +110,7 @@ type Config struct {
 	// BlockOnResponse determines if libhoney should block trying to hand
 	// responses back to the caller. If this is true and there is nothing reading
 	// from the Responses channel, it will fill up and prevent events from being
-	// sent to Honeycomb. Defaults to False - if you don't read from the Responses
+	// sent to Opsramp. Defaults to False - if you don't read from the Responses
 	// channel it will be ok.
 	BlockOnResponse bool
 
@@ -122,7 +122,7 @@ type Config struct {
 
 	// Transmission allows you to override what happens to events after you call
 	// Send() on them. By default, events are asynchronously sent to the
-	// Honeycomb API. You can use the MockOutput included in this package in
+	// Opsramp API. You can use the MockOutput included in this package in
 	// unit tests, or use the transmission.WriterSender to write events to
 	// STDOUT or to a file when developing locally.
 	Transmission transmission.Sender
@@ -195,7 +195,7 @@ func Init(conf Config) error {
 	}
 
 	// If both transmission and output are set, use transmission. If only one is
-	// set, use it. If neither is set, use the Honeycomb transmission
+	// set, use it. If neither is set, use the Opsramp transmission
 	var t transmission.Sender
 	switch {
 	case conf.Transmission != nil:
@@ -281,14 +281,14 @@ func (to *transitionOutput) SendResponse(r transmission.Response) bool {
 	return false
 }
 
-// VerifyWriteKey is the deprecated call to validate a Honeycomb API key.
+// VerifyWriteKey is the deprecated call to validate a Opsramp API key.
 //
 // Deprecated: Please use VerifyAPIKey instead.
 func VerifyWriteKey(config Config) (team string, err error) {
 	return VerifyAPIKey(config)
 }
 
-// VerifyAPIKey calls out to the Honeycomb API to validate the API key so we can
+// VerifyAPIKey calls out to the Opsramp API to validate the API key so we can
 // exit immediately if desired instead of happily sending events that are all
 // rejected.
 func VerifyAPIKey(config Config) (team string, err error) {
@@ -313,7 +313,7 @@ func VerifyAPIKey(config Config) (team string, err error) {
 		return team, err
 	}
 	req.Header.Set("User-Agent", UserAgentAddition)
-	req.Header.Add("X-Opsramptraceproxy-Team", config.APIKey)
+	//req.Header.Add("X-Opsramptraceproxy-Team", config.APIKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -341,7 +341,7 @@ type Response struct {
 	transmission.Response
 }
 
-// Event is used to hold data that can be sent to Honeycomb. It can also
+// Event is used to hold data that can be sent to Opsramp. It can also
 // specify overrides of the config settings.
 type Event struct {
 	// WriteKey, if set, overrides whatever is found in Config
@@ -357,7 +357,7 @@ type Event struct {
 	Timestamp time.Time
 	// Metadata is a field for you to add in data that will be handed back to you
 	// on the Response object read off the Responses channel. It is not sent to
-	// Honeycomb with the event.
+	// Opsramp with the event.
 	Metadata interface{}
 
 	// fieldHolder contains fields (and methods) common to both events and builders
@@ -730,7 +730,7 @@ func (e *Event) AddFunc(fn func() (string, interface{}, error)) error {
 	return e.fieldHolder.AddFunc(fn)
 }
 
-// Send dispatches the event to be sent to Honeycomb, sampling if necessary.
+// Send dispatches the event to be sent to Opsramp, sampling if necessary.
 //
 // If you have sampling enabled
 // (i.e. SampleRate >1), Send will only actually transmit data with a
@@ -759,7 +759,7 @@ func (e *Event) Send() error {
 	return e.SendPresampled()
 }
 
-// SendPresampled dispatches the event to be sent to Honeycomb.
+// SendPresampled dispatches the event to be sent to Opsramp.
 //
 // Sampling is assumed to have already happened. SendPresampled will dispatch
 // every event handed to it, and pass along the sample rate. Use this instead of
@@ -797,9 +797,9 @@ func (e *Event) SendPresampled() (err error) {
 		return errors.New("No metrics added to event. Won't send empty event.")
 	}
 
-	// if client.transmission is transmission.Honeycomb or a pointer to same,
+	// if client.transmission is transmission.Opsramp or a pointer to same,
 	// then we should verify that APIHost and WriteKey are set. For
-	// non-Honeycomb based Sender implementations (eg STDOUT) it's totally
+	// non-Opsramp based Sender implementations (eg STDOUT) it's totally
 	// possible to send events without an API key etc
 
 	senderType := reflect.TypeOf(e.client.transmission).String()
