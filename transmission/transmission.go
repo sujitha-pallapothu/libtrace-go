@@ -21,10 +21,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"io"
-	"io/ioutil"
 	"net/http"
-	"net/url"
-	"path"
 	"strings"
 	"sync"
 	"time"
@@ -787,8 +784,7 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 	*/
 
 }
-
-func (b *batchAgg) exportBatch(events []*Event) {
+/*func (b *batchAgg) exportBatch(events []*Event) {
 	fmt.Println("Exporting batch..")
 	start := time.Now().UTC()
 	if b.testNower != nil {
@@ -818,11 +814,11 @@ func (b *batchAgg) exportBatch(events []*Event) {
 
 	// get some attributes common to this entire batch up front off the first
 	// valid event (some may be nil)
-	var apiHost, writeKey, dataset string
+	var apiHost, dataset string
 	for _, ev := range events {
 		if ev != nil {
 			apiHost = ev.APIHost
-			writeKey = ev.APIKey
+			//writeKey = ev.APIKey
 			dataset = ev.Dataset
 			break
 		}
@@ -1026,11 +1022,11 @@ func (b *batchAgg) fireBatch(events []*Event) {
 
 	// get some attributes common to this entire batch up front off the first
 	// valid event (some may be nil)
-	var apiHost, writeKey, dataset string
+	var apiHost, dataset string
 	for _, ev := range events {
 		if ev != nil {
 			apiHost = ev.APIHost
-			writeKey = ev.APIKey
+			//writeKey = ev.APIKey
 			dataset = ev.Dataset
 			break
 		}
@@ -1205,7 +1201,7 @@ func (b *batchAgg) fireBatch(events []*Event) {
 		b.enqueueResponse(resp)
 		eIdx++
 	}
-}
+}*/
 
 // create the JSON for this event list manually so that we can send
 // responses down the response queue for any that fail to marshal

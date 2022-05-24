@@ -14,7 +14,7 @@ type MockOutput struct {
 func (w *MockOutput) Add(ev *Event) {
 	transEv := &transmission.Event{
 		APIHost:    ev.APIHost,
-		APIKey:     ev.WriteKey,
+		//APIKey:     ev.WriteKey,
 		Dataset:    ev.Dataset,
 		SampleRate: ev.SampleRate,
 		Timestamp:  ev.Timestamp,
@@ -29,7 +29,7 @@ func (w *MockOutput) Events() []*Event {
 	for _, ev := range w.MockSender.Events() {
 		transEv := &Event{
 			APIHost:    ev.APIHost,
-			WriteKey:   ev.APIKey,
+			//WriteKey:   ev.APIKey,
 			Dataset:    ev.Dataset,
 			SampleRate: ev.SampleRate,
 			Timestamp:  ev.Timestamp,
