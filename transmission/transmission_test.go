@@ -916,7 +916,7 @@ func (fb *fakeBatch) Fire(notifier muster.Notifier) {
 	fb.send <- fb.items
 }
 
-func TestHoneycombTransmissionFlush(t *testing.T) {
+func TestOpsrampTransmissionFlush(t *testing.T) {
 	ev := &Event{
 		Metadata: "adder",
 	}
@@ -925,7 +925,7 @@ func TestHoneycombTransmissionFlush(t *testing.T) {
 		// This test adds some data to the default Transmission implementation and
 		// flushes it. Then it checks to verify that the data that was added got
 		// sent.
-		w := new(Honeycomb)
+		w := new(Opsramp)
 		w.MaxBatchSize = 1000
 		w.PendingWorkCapacity = 1
 		block := make(chan struct{})
@@ -973,7 +973,7 @@ func TestHoneycombTransmissionFlush(t *testing.T) {
 	})
 
 	t.Run("Flush should not race or panic if Add is called while Flush is executing", func(t *testing.T) {
-		w := new(Honeycomb)
+		w := new(Opsramp)
 		w.MaxBatchSize = 1000
 		block := make(chan struct{})
 		sendChan := make(chan []interface{}, 2)
@@ -1006,7 +1006,7 @@ func TestHoneycombTransmissionFlush(t *testing.T) {
 	})
 
 	t.Run("Flush should not race or panic if called from multiple goroutines", func(t *testing.T) {
-		w := new(Honeycomb)
+		w := new(Opsramp)
 		w.MaxBatchSize = 1000
 		var wg sync.WaitGroup
 		wg.Add(2)
@@ -1037,12 +1037,12 @@ func TestHoneycombTransmissionFlush(t *testing.T) {
 	})
 }
 
-func TestHoneycombSenderAddingResponsesBlocking(t *testing.T) {
+func TestOpsrampSenderAddingResponsesBlocking(t *testing.T) {
 	// this test has a few timeout checks. don't wait to run other tests.
 	t.Parallel()
 	// using the public SendRespanse method should add the response to the queue
 	// while honoring the block setting
-	w := &Honeycomb{
+	w := &Opsramp{
 		BlockOnResponse:     true,
 		PendingWorkCapacity: 1, // pwc of 1 means response queue size of 2
 		Logger:              &nullLogger{},

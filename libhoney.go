@@ -77,12 +77,12 @@ type Config struct {
 	// libhoney initialization, it will be used as the default API key for all
 	// events. If absent, API key must be explicitly set on a builder or
 	// event. Find your team's API keys at https://ui.Opsramp.io/account
-	APIKey string
+	//APIKey string
 
 	// WriteKey is the deprecated name for the Opsramp authentication token.
 	//
 	// Deprecated: Use APIKey instead. If both are set, APIKey takes precedence.
-	WriteKey string
+	//WriteKey string
 
 	// Dataset is the name of the Opsramp dataset to which to send these events.
 	// If it is specified during libhoney initialization, it will be used as the

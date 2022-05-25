@@ -33,7 +33,7 @@ func main() {
 	// basic initialization
 	libhConf := libhoney.Config{
 		// TODO change to use APIKey
-		WriteKey: honeyFakeAPIKey,
+	//	WriteKey: honeyFakeAPIKey,
 		Dataset:  honeyDataset,
 		Logger:   &libhoney.DefaultLogger{},
 	}
@@ -79,7 +79,7 @@ func main() {
 
 	libhoney.Close()
 	wg.Wait()
-	fmt.Println("All done! Go check Opsramp https://ui.honeycomb.io/ to see your data.")
+	fmt.Println("All done! Go check Opsramp https://ui.opsramp.io/ to see your data.")
 }
 
 func readResponses(wg *sync.WaitGroup, responses chan libhoney.Response) {

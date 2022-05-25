@@ -85,7 +85,7 @@ func TestNewEvent(t *testing.T) {
 	}
 	Init(conf)
 	ev := NewEvent()
-	testEquals(t, ev.WriteKey, "aoeu")
+	//testEquals(t, ev.WriteKey, "aoeu")
 	testEquals(t, ev.Dataset, "oeui")
 	testEquals(t, ev.SampleRate, uint(1))
 	testEquals(t, ev.APIHost, "http://localhost:8081/")
@@ -652,7 +652,7 @@ func TestSendPresampledErrors(t *testing.T) {
 					data: map[string]interface{}{"a": 1},
 				},
 				APIHost:  "foo",
-				WriteKey: "bar",
+				//WriteKey: "bar",
 				client:   dc,
 			},
 			expErr: errors.New("No Dataset for Opsramp. Can't send datasetless."),
@@ -663,7 +663,7 @@ func TestSendPresampledErrors(t *testing.T) {
 					data: map[string]interface{}{"a": 1},
 				},
 				APIHost:  "foo",
-				WriteKey: "bar",
+				//WriteKey: "bar",
 				Dataset:  "baz",
 				client:   dc,
 			},
@@ -691,7 +691,7 @@ func TestPresampledSendSamplerate(t *testing.T) {
 			data: map[string]interface{}{"a": 1},
 		},
 		APIHost:    "foo",
-		WriteKey:   "bar",
+		//WriteKey:   "bar",
 		Dataset:    "baz",
 		SampleRate: 5,
 		client:     dc,
@@ -722,7 +722,7 @@ func TestSendSamplerate(t *testing.T) {
 			data: map[string]interface{}{"a": 1},
 		},
 		APIHost:    "foo",
-		WriteKey:   "bar",
+	//	WriteKey:   "bar",
 		Dataset:    "baz",
 		SampleRate: 2,
 		client:     dc,
@@ -894,7 +894,7 @@ func TestDataRace3(t *testing.T) {
 			data: map[string]interface{}{"a": 1},
 		},
 		APIHost:    "foo",
-		WriteKey:   "bar",
+		//WriteKey:   "bar",
 		Dataset:    "baz",
 		SampleRate: 1,
 		client:     dc,
@@ -1093,7 +1093,7 @@ func TestEventStringReturnsMaskedApiKey(t *testing.T) {
 					data: map[string]interface{}{"a": 1},
 				},
 				APIHost:    "foo",
-				WriteKey:   "",
+	//			WriteKey:   "",
 				Dataset:    "baz",
 				SampleRate: 1,
 				client:     dc,
@@ -1106,7 +1106,7 @@ func TestEventStringReturnsMaskedApiKey(t *testing.T) {
 					data: map[string]interface{}{"a": 1},
 				},
 				APIHost:    "foo",
-				WriteKey:   "woop",
+			//	WriteKey:   "woop",
 				Dataset:    "baz",
 				SampleRate: 1,
 				client:     dc,
@@ -1119,7 +1119,7 @@ func TestEventStringReturnsMaskedApiKey(t *testing.T) {
 					data: map[string]interface{}{"a": 1},
 				},
 				APIHost:    "foo",
-				WriteKey:   "fibble",
+				//WriteKey:   "fibble",
 				Dataset:    "baz",
 				SampleRate: 1,
 				client:     dc,
@@ -1132,7 +1132,7 @@ func TestEventStringReturnsMaskedApiKey(t *testing.T) {
 					data: map[string]interface{}{"a": 1},
 				},
 				APIHost:    "foo",
-				WriteKey:   "fibblewibble",
+				//WriteKey:   "fibblewibble",
 				Dataset:    "baz",
 				SampleRate: 1,
 				client:     dc,

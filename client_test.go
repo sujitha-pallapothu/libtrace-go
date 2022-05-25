@@ -136,7 +136,7 @@ func TestAddSendRaces(t *testing.T) {
 		Transmission: tx,
 	})
 	ev := c.NewEvent()
-	ev.WriteKey = "oh my, a write"
+	//ev.WriteKey = "oh my, a write"
 	ev.Dataset = "there is no data in this set"
 	ev.APIHost = "APIHostess with the mostess"
 	ev.AddField("preexisting", "condition")

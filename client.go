@@ -33,7 +33,7 @@ type ClientConfig struct {
 	// libhoney initialization, it will be used as the default API key for all
 	// events. If absent, API key must be explicitly set on a builder or
 	// event. Find your team's API keys at https://ui.opsramp.io/account
-	APIKey string
+	//APIKey string
 
 	// Dataset is the name of the opsramp dataset to which to send these events.
 	// If it is specified during libhoney initialization, it will be used as the
@@ -100,7 +100,7 @@ func NewClient(conf ClientConfig) (*Client, error) {
 	}
 
 	c.builder = &Builder{
-		WriteKey:   conf.APIKey,
+		//WriteKey:   conf.APIKey,
 		Dataset:    conf.Dataset,
 		SampleRate: conf.SampleRate,
 		APIHost:    conf.APIHost,

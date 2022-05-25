@@ -125,6 +125,7 @@ func (h *Opsramptraceproxy) Start() error {
 }
 
 func (h *Opsramptraceproxy) createMuster() *muster.Client {
+	fmt.Println("inside createMuster")
 	m := new(muster.Client)
 	m.MaxBatchSize = h.MaxBatchSize
 	m.BatchTimeout = h.BatchTimeout
@@ -146,6 +147,7 @@ func (h *Opsramptraceproxy) Flush() (err error) {
 	// the old one (which has a side-effect of flushing the data) and make a new
 	// one. We start the new one and swap it with the old one so that we minimize
 	// the time we hold the musterLock for.
+	fmt.Println("inside Flush")
 	newMuster := h.createMuster()
 	err = newMuster.Start()
 	if err != nil {
@@ -163,6 +165,7 @@ func (h *Opsramptraceproxy) Flush() (err error) {
 // than the PendingWorkCapacity, this will block a Flush until more pending
 // work can be enqueued.
 func (h *Opsramptraceproxy) Add(ev *Event) {
+	fmt.Println("inside add 168")
 	if h.tryAdd(ev) {
 		h.Metrics.Increment("messages_queued")
 		return
@@ -180,6 +183,7 @@ func (h *Opsramptraceproxy) Add(ev *Event) {
 // tryAdd attempts to add ev to the underlying muster. It returns false if this
 // was unsucessful because the muster queue (muster.Work) is full.
 func (h *Opsramptraceproxy) tryAdd(ev *Event) bool {
+	fmt.Println("inside tryAdd")
 	h.musterLock.RLock()
 	defer h.musterLock.RUnlock()
 
@@ -203,10 +207,12 @@ func (h *Opsramptraceproxy) tryAdd(ev *Event) bool {
 }
 
 func (h *Opsramptraceproxy) TxResponses() chan Response {
+	fmt.Println("inside TxResponses")
 	return h.responses
 }
 
 func (h *Opsramptraceproxy) SendResponse(r Response) bool {
+	fmt.Println("inside SendResponse")
 	if h.BlockOnResponse {
 		h.responses <- r
 	} else {
@@ -251,6 +257,7 @@ type batchAgg struct {
 // type batch []*Event
 
 func (b *batchAgg) Add(ev interface{}) {
+	fmt.Println("inside add func")
 	// from muster godoc: "The Batch does not need to be safe for concurrent
 	// access; synchronization will be handled by the Client."
 	if b.batches == nil {
@@ -259,11 +266,12 @@ func (b *batchAgg) Add(ev interface{}) {
 	e := ev.(*Event)
 	// collect separate buckets of events to send based on the trio of api/wk/ds
 	// if all three of those match it's safe to send all the events in one batch
-	key := fmt.Sprintf("%s_%s_%s", e.APIHost, e.APIKey, e.Dataset)
+	key := fmt.Sprintf("%s_%s", e.APIHost, e.Dataset)
 	b.batches[key] = append(b.batches[key], e)
 }
 
 func (b *batchAgg) enqueueResponse(resp Response) {
+	fmt.Println("inside enqueueResponse")
 	if writeToResponse(b.responses, resp, b.blockOnResponse) {
 		if b.testBlocker != nil {
 			b.testBlocker.Done()
@@ -272,16 +280,18 @@ func (b *batchAgg) enqueueResponse(resp Response) {
 }
 
 func (b *batchAgg) reenqueueEvents(events []*Event) {
+	fmt.Println("inside reenqueueEvents")
 	if b.overflowBatches == nil {
 		b.overflowBatches = make(map[string][]*Event)
 	}
 	for _, e := range events {
-		key := fmt.Sprintf("%s_%s_%s", e.APIHost, e.APIKey, e.Dataset)
+		key := fmt.Sprintf("%s_%s", e.APIHost, e.Dataset)
 		b.overflowBatches[key] = append(b.overflowBatches[key], e)
 	}
 }
 
 func (b *batchAgg) Fire(notifier muster.Notifier) {
+	fmt.Println("inside fire")
 	defer notifier.Done()
 
 	// send each batchKey's collection of event as a POST to /1/batch/<dataset>

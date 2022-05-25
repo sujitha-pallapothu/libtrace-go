@@ -13,7 +13,7 @@ import (
 
 type Event struct {
 	// APIKey, if set, overrides whatever is found in Config
-	APIKey string
+	//APIKey string
 	// Dataset, if set, overrides whatever is found in Config
 	Dataset string
 	// SampleRate, if set, overrides whatever is found in Config
