@@ -153,7 +153,7 @@ type Config struct {
 // per-Event basis.
 //
 // Make sure to call Close() to flush buffers.
-func Init(conf Config) error {
+/*func Init(conf Config) error {
 
 	// populate a client config to spin up the default package-level Client
 	clientConf := ClientConfig{}
@@ -221,7 +221,7 @@ func Init(conf Config) error {
 	var err error
 	dc, err = NewClient(clientConf)
 	return err
-}
+}*/
 
 // Output was responsible for handling events after Send() is called. Implementations
 // of Add() must be safe for concurrent calls.
