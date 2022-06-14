@@ -20,7 +20,6 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
-	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -1216,6 +1215,7 @@ func (b *batchAgg) fireBatch(events []*Event) {
 // create the JSON for this event list manually so that we can send
 // responses down the response queue for any that fail to marshal
 func (b *batchAgg) encodeBatchJSON(events []*Event) ([]byte, int) {
+	fmt.Println("inside encodeBatchJson")
 	// track first vs. rest events for commas
 	first := true
 	// track how many we successfully encode for later bookkeeping
@@ -1271,6 +1271,7 @@ func (b *batchAgg) encodeBatchJSON(events []*Event) ([]byte, int) {
 // responses down the response queue for any that fail to marshal
 func (b *batchAgg) encodeBatchProtoBuf(events []*Event) ([]byte, int) {
 	// track first vs. rest events for commas
+
 	first := true
 	// track how many we successfully encode for later bookkeeping
 	var numEncoded int
@@ -1327,7 +1328,7 @@ func (b *batchAgg) encodeBatchMsgp(events []*Event) ([]byte, int) {
 	// doesn't do size estimation. Also, the array header is of variable size
 	// based on array length, so we'll need to do some []byte shenanigans at
 	// at the end of this to properly prepend the header.
-
+fmt.Println("inside encodeBatchMsgp")
 	var arrayHeader [5]byte
 	var numEncoded int
 	var buf bytes.Buffer
@@ -1376,6 +1377,7 @@ func (b *batchAgg) encodeBatchMsgp(events []*Event) ([]byte, int) {
 }
 
 func (b *batchAgg) enqueueErrResponses(err error, events []*Event, duration time.Duration) {
+	fmt.Println("inside enqueueErrResponses")
 	for _, ev := range events {
 		if ev != nil {
 			b.enqueueResponse(Response{
@@ -1394,14 +1396,14 @@ type pooledReader struct {
 	buf []byte
 }
 
-func (r *pooledReader) Release() error {
-	// Ensure further attempts to read will return io.EOF
-	r.Reset(nil)
-	// Then reset and give up ownership of the buffer.
-	zstdBufferPool.Put(r.buf[:0])
-	r.buf = nil
-	return nil
-}
+//func (r *pooledReader) Release() error {
+//	// Ensure further attempts to read will return io.EOF
+//	r.Reset(nil)
+//	// Then reset and give up ownership of the buffer.
+//	zstdBufferPool.Put(r.buf[:0])
+//	r.buf = nil
+//	return nil
+//}
 
 // Instantiating a new encoder is expensive, so use a global one.
 // EncodeAll() is concurrency-safe.
@@ -1424,22 +1426,22 @@ func init() {
 
 // buildReqReader returns an io.Reader and a boolean, indicating whether or not
 // the underlying bytes.Reader is compressed.
-func buildReqReader(jsonEncoded []byte, compress bool) (io.Reader, bool) {
-	if compress {
-		var buf []byte
-		if found, ok := zstdBufferPool.Get().([]byte); ok {
-			buf = found[:0]
-		}
-
-		buf = zstdEncoder.EncodeAll(jsonEncoded, buf)
-		reader := pooledReader{
-			buf: buf,
-		}
-		reader.Reset(reader.buf)
-		return &reader, true
-	}
-	return bytes.NewReader(jsonEncoded), false
-}
+//func buildReqReader(jsonEncoded []byte, compress bool) (io.Reader, bool) {
+//	if compress {
+//		var buf []byte
+//		if found, ok := zstdBufferPool.Get().([]byte); ok {
+//			buf = found[:0]
+//		}
+//
+//		buf = zstdEncoder.EncodeAll(jsonEncoded, buf)
+//		reader := pooledReader{
+//			buf: buf,
+//		}
+//		reader.Reset(reader.buf)
+//		return &reader, true
+//	}
+//	return bytes.NewReader(jsonEncoded), false
+//}
 
 // nower to make testing easier
 type nower interface {

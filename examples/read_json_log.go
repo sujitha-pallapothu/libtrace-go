@@ -31,13 +31,13 @@ var jsonFilePaths = []string{"./example1.json", "./example2.json"}
 func main() {
 
 	// basic initialization
-	libhConf := libhoney.Config{
-		// TODO change to use APIKey
-	//	WriteKey: honeyFakeAPIKey,
-		Dataset:  honeyDataset,
-		Logger:   &libhoney.DefaultLogger{},
-	}
-	libhoney.Init(libhConf)
+	//libhConf := libhoney.Config{
+	//	// TODO change to use APIKey
+	////	WriteKey: honeyFakeAPIKey,
+	//	Dataset:  honeyDataset,
+	//	Logger:   &libhoney.DefaultLogger{},
+	//}
+	//libhoney.Init(libhConf)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)

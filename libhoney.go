@@ -873,14 +873,14 @@ func (b *Builder) AddDynamicField(name string, fn func() interface{}) error {
 //   ev.Send()
 //
 // Deprecated: SendNow is deprecated and may be removed in a future major release.
-func (b *Builder) SendNow(data interface{}) error {
-	ev := b.NewEvent()
-	if err := ev.Add(data); err != nil {
-		return err
-	}
-	err := ev.Send()
-	return err
-}
+//func (b *Builder) SendNow(data interface{}) error {
+//	ev := b.NewEvent()
+//	if err := ev.Add(data); err != nil {
+//		return err
+//	}
+//	err := ev.Send()
+//	return err
+//}
 
 // NewEvent creates a new Event prepopulated with fields, dynamic
 // field values, and configuration inherited from the builder.
