@@ -64,54 +64,54 @@ type ClientConfig struct {
 }
 
 // NewClient creates a Client with defaults correctly set
-//func NewClient(conf ClientConfig) (*Client, error) {
-//	if conf.SampleRate == 0 {
-//		conf.SampleRate = defaultSampleRate
-//	}
-//	if conf.APIHost == "" {
-//		conf.APIHost = defaultAPIHost
-//	}
-//	if conf.Dataset == "" {
-//		conf.Dataset = defaultDataset
-//	}
-//
-//	c := &Client{
-//		logger: conf.Logger,
-//	}
-//	c.ensureLogger()
-//
-//	if conf.Transmission == nil {
-//		c.transmission = &transmission.Opsramptraceproxy{
-//			MaxBatchSize:         DefaultMaxBatchSize,
-//			BatchTimeout:         DefaultBatchTimeout,
-//			MaxConcurrentBatches: DefaultMaxConcurrentBatches,
-//			PendingWorkCapacity:  DefaultPendingWorkCapacity,
-//			UserAgentAddition:    UserAgentAddition,
-//			Logger:               c.logger,
-//			Metrics:              sd,
-//		}
-//	} else {
-//		c.transmission = conf.Transmission
-//	}
-//	if err := c.transmission.Start(); err != nil {
-//		c.logger.Printf("transmission client failed to start: %s", err.Error())
-//		return nil, err
-//	}
-//
-//	c.builder = &Builder{
-//		//WriteKey:   conf.APIKey,
-//		Dataset:    conf.Dataset,
-//		SampleRate: conf.SampleRate,
-//		APIHost:    conf.APIHost,
-//		dynFields:  make([]dynamicField, 0, 0),
-//		fieldHolder: fieldHolder{
-//			data: make(map[string]interface{}),
-//		},
-//		client: c,
-//	}
-//
-//	return c, nil
-//}
+func NewClient(conf ClientConfig) (*Client, error) {
+	if conf.SampleRate == 0 {
+		conf.SampleRate = defaultSampleRate
+	}
+	if conf.APIHost == "" {
+		conf.APIHost = defaultAPIHost
+	}
+	if conf.Dataset == "" {
+		conf.Dataset = defaultDataset
+	}
+
+	c := &Client{
+		logger: conf.Logger,
+	}
+	c.ensureLogger()
+
+	if conf.Transmission == nil {
+		c.transmission = &transmission.Opsramptraceproxy{
+			MaxBatchSize:         DefaultMaxBatchSize,
+			BatchTimeout:         DefaultBatchTimeout,
+			MaxConcurrentBatches: DefaultMaxConcurrentBatches,
+			PendingWorkCapacity:  DefaultPendingWorkCapacity,
+			UserAgentAddition:    UserAgentAddition,
+			Logger:               c.logger,
+			Metrics:              sd,
+		}
+	} else {
+		c.transmission = conf.Transmission
+	}
+	if err := c.transmission.Start(); err != nil {
+		c.logger.Printf("transmission client failed to start: %s", err.Error())
+		return nil, err
+	}
+
+	c.builder = &Builder{
+		//WriteKey:   conf.APIKey,
+		Dataset:    conf.Dataset,
+		SampleRate: conf.SampleRate,
+		APIHost:    conf.APIHost,
+		dynFields:  make([]dynamicField, 0, 0),
+		fieldHolder: fieldHolder{
+			data: make(map[string]interface{}),
+		},
+		client: c,
+	}
+
+	return c, nil
+}
 
 func (c *Client) ensureTransmission() {
 	c.oneTx.Do(func() {
