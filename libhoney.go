@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -502,25 +501,25 @@ func Flush() {
 // to sent events.
 //
 // Deprecated: Responses is deprecated; please use TxResponses instead.
-func Responses() chan Response {
-	oneResp.Do(func() {
-		if transitionResponses == nil {
-			txResponses := dc.TxResponses()
-			transitionResponses = make(chan Response, cap(txResponses))
-			go func() {
-				for txResp := range txResponses {
-					resp := Response{}
-					resp.Response = txResp
-					transitionResponses <- resp
-				}
-				close(transitionResponses)
-			}()
-		}
-	})
-	return transitionResponses
-}
-
-// TxResponses returns the channel from which the caller can read the responses
+//func Responses() chan Response {
+//	oneResp.Do(func() {
+//		if transitionResponses == nil {
+//			txResponses := dc.TxResponses()
+//			transitionResponses = make(chan Response, cap(txResponses))
+//			go func() {
+//				for txResp := range txResponses {
+//					resp := Response{}
+//					resp.Response = txResp
+//					transitionResponses <- resp
+//				}
+//				close(transitionResponses)
+//			}()
+//		}
+//	})
+//	return transitionResponses
+//}
+//
+//// TxResponses returns the channel from which the caller can read the responses
 // to sent events.
 func TxResponses() chan transmission.Response {
 	return dc.TxResponses()
@@ -571,86 +570,86 @@ func (f *fieldHolder) AddField(key string, val interface{}) {
 // Add adds a complex data type to the event or builder on which it's called.
 // For structs, it adds each exported field. For maps, it adds each key/value.
 // Add will error on all other types.
-func (f *fieldHolder) Add(data interface{}) error {
-	switch reflect.TypeOf(data).Kind() {
-	case reflect.Struct:
-		return f.addStruct(data)
-	case reflect.Map:
-		return f.addMap(data)
-	case reflect.Ptr:
-		return f.Add(reflect.ValueOf(data).Elem().Interface())
-	}
-	return fmt.Errorf(
-		"Couldn't add type %s content %+v",
-		reflect.TypeOf(data).Kind(), data,
-	)
-}
+//func (f *fieldHolder) Add(data interface{}) error {
+//	switch reflect.TypeOf(data).Kind() {
+//	case reflect.Struct:
+//		return f.addStruct(data)
+//	case reflect.Map:
+//		return f.addMap(data)
+//	case reflect.Ptr:
+//		return f.Add(reflect.ValueOf(data).Elem().Interface())
+//	}
+//	return fmt.Errorf(
+//		"Couldn't add type %s content %+v",
+//		reflect.TypeOf(data).Kind(), data,
+//	)
+//}
 
-func (f *fieldHolder) addStruct(s interface{}) error {
-	f.lock.Lock()
-	defer f.lock.Unlock()
-
-	// TODO should we handle embedded structs differently from other deep structs?
-	sType := reflect.TypeOf(s)
-	sVal := reflect.ValueOf(s)
-	// Iterate through the fields, adding each.
-	for i := 0; i < sType.NumField(); i++ {
-		fieldInfo := sType.Field(i)
-		if fieldInfo.PkgPath != "" {
-			// skipping unexported field in the struct
-			continue
-		}
-
-		var fName string
-		fTag := fieldInfo.Tag.Get("json")
-		if fTag != "" {
-			if fTag == "-" {
-				// skip this field
-				continue
-			}
-			// slice off options
-			if idx := strings.Index(fTag, ","); idx != -1 {
-				options := fTag[idx:]
-				fTag = fTag[:idx]
-				if strings.Contains(options, "omitempty") && isEmptyValue(sVal.Field(i)) {
-					// skip empty values if omitempty option is set
-					continue
-				}
-			}
-			fName = fTag
-		} else {
-			fName = fieldInfo.Name
-		}
-
-		f.data[fName] = sVal.Field(i).Interface()
-	}
-	return nil
-}
-
-func (f *fieldHolder) addMap(m interface{}) error {
-	f.lock.Lock()
-	defer f.lock.Unlock()
-
-	mVal := reflect.ValueOf(m)
-	mKeys := mVal.MapKeys()
-	for _, key := range mKeys {
-		// get a string representation of key
-		var keyStr string
-		switch key.Type().Kind() {
-		case reflect.String:
-			keyStr = key.String()
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
-			reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
-			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
-			reflect.Complex128:
-			keyStr = fmt.Sprintf("%v", key.Interface())
-		default:
-			return fmt.Errorf("failed to add map: key type %s unaccepted", key.Type().Kind())
-		}
-		f.data[keyStr] = mVal.MapIndex(key).Interface()
-	}
-	return nil
-}
+//func (f *fieldHolder) addStruct(s interface{}) error {
+//	f.lock.Lock()
+//	defer f.lock.Unlock()
+//
+//	// TODO should we handle embedded structs differently from other deep structs?
+//	sType := reflect.TypeOf(s)
+//	sVal := reflect.ValueOf(s)
+//	// Iterate through the fields, adding each.
+//	for i := 0; i < sType.NumField(); i++ {
+//		fieldInfo := sType.Field(i)
+//		if fieldInfo.PkgPath != "" {
+//			// skipping unexported field in the struct
+//			continue
+//		}
+//
+//		var fName string
+//		fTag := fieldInfo.Tag.Get("json")
+//		if fTag != "" {
+//			if fTag == "-" {
+//				// skip this field
+//				continue
+//			}
+//			// slice off options
+//			if idx := strings.Index(fTag, ","); idx != -1 {
+//				options := fTag[idx:]
+//				fTag = fTag[:idx]
+//				if strings.Contains(options, "omitempty") && isEmptyValue(sVal.Field(i)) {
+//					// skip empty values if omitempty option is set
+//					continue
+//				}
+//			}
+//			fName = fTag
+//		} else {
+//			fName = fieldInfo.Name
+//		}
+//
+//		f.data[fName] = sVal.Field(i).Interface()
+//	}
+//	return nil
+//}
+//
+//func (f *fieldHolder) addMap(m interface{}) error {
+//	f.lock.Lock()
+//	defer f.lock.Unlock()
+//
+//	mVal := reflect.ValueOf(m)
+//	mKeys := mVal.MapKeys()
+//	for _, key := range mKeys {
+//		// get a string representation of key
+//		var keyStr string
+//		switch key.Type().Kind() {
+//		case reflect.String:
+//			keyStr = key.String()
+//		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
+//			reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
+//			reflect.Uint64, reflect.Float32, reflect.Float64, reflect.Complex64,
+//			reflect.Complex128:
+//			keyStr = fmt.Sprintf("%v", key.Interface())
+//		default:
+//			return fmt.Errorf("failed to add map: key type %s unaccepted", key.Type().Kind())
+//		}
+//		f.data[keyStr] = mVal.MapIndex(key).Interface()
+//	}
+//	return nil
+//}
 
 // AddFunc takes a function and runs it repeatedly, adding the return values
 // as fields.
@@ -670,14 +669,14 @@ func (f *fieldHolder) addMap(m interface{}) error {
 // Fields returns a reference to the map of fields that have been added to an
 // event. Caution: it is not safe to manipulate the returned map concurrently
 // with calls to AddField, Add or AddFunc.
-func (f *fieldHolder) Fields() map[string]interface{} {
-	return f.data
-}
+//func (f *fieldHolder) Fields() map[string]interface{} {
+//	return f.data
+//}
 
 // returns a human friendly string representation of the fieldHolder
-func (f *fieldHolder) String() string {
-	return fmt.Sprint(f.data)
-}
+//func (f *fieldHolder) String() string {
+//	return fmt.Sprint(f.data)
+//}
 
 // mask the add functions on an event so that we can test the sent lock and noop
 // if the event has been sent.
@@ -703,14 +702,14 @@ func (f *fieldHolder) String() string {
 //
 // Adds to an event that happen after it has been sent will return without
 // having any effect.
-func (e *Event) Add(data interface{}) error {
-	e.sendLock.Lock()
-	defer e.sendLock.Unlock()
-	if e.sent == true {
-		return nil
-	}
-	return e.fieldHolder.Add(data)
-}
+//func (e *Event) Add(data interface{}) error {
+//	e.sendLock.Lock()
+//	defer e.sendLock.Unlock()
+//	if e.sent == true {
+//		return nil
+//	}
+//	return e.fieldHolder.Add(data)
+//}
 
 // AddFunc takes a function and runs it repeatedly, adding the return values
 // as fields.
@@ -844,26 +843,26 @@ func (e *Event) SendPresampled() (err error) {
 //}
 
 // returns true if the sample should be dropped
-func shouldDrop(rate uint) bool {
-	if rate <= 1 {
-		return false
-	}
-
-	return rand.Intn(int(rate)) != 0
-}
+//func shouldDrop(rate uint) bool {
+//	if rate <= 1 {
+//		return false
+//	}
+//
+//	return rand.Intn(int(rate)) != 0
+//}
 
 // AddDynamicField adds a dynamic field to the builder. Any events
 // created from this builder will get this metric added.
-func (b *Builder) AddDynamicField(name string, fn func() interface{}) error {
-	b.dynFieldsLock.Lock()
-	defer b.dynFieldsLock.Unlock()
-	dynFn := dynamicField{
-		name: name,
-		fn:   fn,
-	}
-	b.dynFields = append(b.dynFields, dynFn)
-	return nil
-}
+//func (b *Builder) AddDynamicField(name string, fn func() interface{}) error {
+//	b.dynFieldsLock.Lock()
+//	defer b.dynFieldsLock.Unlock()
+//	dynFn := dynamicField{
+//		name: name,
+//		fn:   fn,
+//	}
+//	b.dynFields = append(b.dynFields, dynFn)
+//	return nil
+//}
 
 // Contrary to its name, SendNow does not block and send data
 // immediately, but only enqueues to be sent asynchronously.
@@ -934,20 +933,20 @@ func (b *Builder) Clone() *Builder {
 }
 
 // Helper lifted from Go stdlib encoding/json
-func isEmptyValue(v reflect.Value) bool {
-	switch v.Kind() {
-	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
-		return v.Len() == 0
-	case reflect.Bool:
-		return !v.Bool()
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return v.Int() == 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return v.Uint() == 0
-	case reflect.Float32, reflect.Float64:
-		return v.Float() == 0
-	case reflect.Interface, reflect.Ptr:
-		return v.IsNil()
-	}
-	return false
-}
+//func isEmptyValue(v reflect.Value) bool {
+//	switch v.Kind() {
+//	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+//		return v.Len() == 0
+//	case reflect.Bool:
+//		return !v.Bool()
+//	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+//		return v.Int() == 0
+//	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+//		return v.Uint() == 0
+//	case reflect.Float32, reflect.Float64:
+//		return v.Float() == 0
+//	case reflect.Interface, reflect.Ptr:
+//		return v.IsNil()
+//	}
+//	return false
+//}
