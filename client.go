@@ -189,11 +189,11 @@ func (c *Client) TxResponses() chan transmission.Response {
 
 // AddField adds a Field to the Client's scope. This metric will be inherited by
 // all builders and events.
-//func (c *Client) AddField(name string, val interface{}) {
-//	c.ensureTransmission()
-//	c.ensureBuilder()
-//	c.builder.AddField(name, val)
-//}
+func (c *Client) AddField(name string, val interface{}) {
+	c.ensureTransmission()
+	c.ensureBuilder()
+	c.builder.AddField(name, val)
+}
 
 // Add adds its data to the Client's scope. It adds all fields in a struct or
 // all keys in a map as individual Fields. These metrics will be inherited by
@@ -206,19 +206,19 @@ func (c *Client) TxResponses() chan transmission.Response {
 
 // NewEvent creates a new event prepopulated with any Fields present in the
 // Client's scope.
-//func (c *Client) NewEvent() *Event {
-//	c.ensureTransmission()
-//	c.ensureBuilder()
-//	return c.builder.NewEvent()
-//}
+func (c *Client) NewEvent() *Event {
+	c.ensureTransmission()
+	c.ensureBuilder()
+	return c.builder.NewEvent()
+}
 
 // NewBuilder creates a new event builder. The builder inherits any Dynamic or
 // Static Fields present in the Client's scope.
-//func (c *Client) NewBuilder() *Builder {
-//	c.ensureTransmission()
-//	c.ensureBuilder()
-//	return c.builder.Clone()
-//}
+func (c *Client) NewBuilder() *Builder {
+	c.ensureTransmission()
+	c.ensureBuilder()
+	return c.builder.Clone()
+}
 
 // sendResponse sends a dropped event response down the response channel
 //func (c *Client) sendDroppedResponse(e *Event, message string) {

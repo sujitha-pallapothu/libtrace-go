@@ -536,9 +536,9 @@ func TxResponses() chan transmission.Response {
 
 // AddField adds a Field to the global scope. This metric will be inherited by
 // all builders and events.
-//func AddField(name string, val interface{}) {
-//	dc.AddField(name, val)
-//}
+func AddField(name string, val interface{}) {
+	dc.AddField(name, val)
+}
 
 // Add adds its data to the global scope. It adds all fields in a struct or all
 // keys in a map as individual Fields. These metrics will be inherited by all
@@ -549,24 +549,24 @@ func TxResponses() chan transmission.Response {
 
 // NewEvent creates a new event prepopulated with any Fields present in the
 // global scope.
-//func NewEvent() *Event {
-//	return dc.NewEvent()
-//}
+func NewEvent() *Event {
+	return dc.NewEvent()
+}
 
 // NewBuilder creates a new event builder. The builder inherits any
 // Dynamic or Static Fields present in the global scope.
-//func NewBuilder() *Builder {
-//	return dc.NewBuilder()
-//}
+func NewBuilder() *Builder {
+	return dc.NewBuilder()
+}
 
 // AddField adds an individual metric to the event or builder on which it is
 // called. Note that if you add a value that cannot be serialized to JSON (eg a
 // function or channel), the event will fail to send.
-//func (f *fieldHolder) AddField(key string, val interface{}) {
-//	f.lock.Lock()
-//	defer f.lock.Unlock()
-//	f.data[key] = val
-//}
+func (f *fieldHolder) AddField(key string, val interface{}) {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	f.data[key] = val
+}
 
 // Add adds a complex data type to the event or builder on which it's called.
 // For structs, it adds each exported field. For maps, it adds each key/value.
@@ -884,54 +884,54 @@ func (b *Builder) AddDynamicField(name string, fn func() interface{}) error {
 
 // NewEvent creates a new Event prepopulated with fields, dynamic
 // field values, and configuration inherited from the builder.
-//func (b *Builder) NewEvent() *Event {
-//	e := &Event{
-//		//WriteKey:   b.WriteKey,
-//		Dataset:    b.Dataset,
-//		SampleRate: b.SampleRate,
-//		APIHost:    b.APIHost,
-//		Timestamp:  time.Now(),
-//		client:     b.client,
-//	}
-//	e.data = make(map[string]interface{})
-//
-//	b.lock.RLock()
-//	defer b.lock.RUnlock()
-//	for k, v := range b.data {
-//		e.data[k] = v
-//	}
-//	// create dynamic metrics
-//	b.dynFieldsLock.RLock()
-//	defer b.dynFieldsLock.RUnlock()
-//	for _, dynField := range b.dynFields {
-//		e.AddField(dynField.name, dynField.fn())
-//	}
-//	return e
-//}
+func (b *Builder) NewEvent() *Event {
+	e := &Event{
+		//WriteKey:   b.WriteKey,
+		Dataset:    b.Dataset,
+		SampleRate: b.SampleRate,
+		APIHost:    b.APIHost,
+		Timestamp:  time.Now(),
+		client:     b.client,
+	}
+	e.data = make(map[string]interface{})
+
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+	for k, v := range b.data {
+		e.data[k] = v
+	}
+	// create dynamic metrics
+	b.dynFieldsLock.RLock()
+	defer b.dynFieldsLock.RUnlock()
+	for _, dynField := range b.dynFields {
+		e.AddField(dynField.name, dynField.fn())
+	}
+	return e
+}
 
 // Clone creates a new builder that inherits all traits of this builder and
 // creates its own scope in which to add additional static and dynamic fields.
-//func (b *Builder) Clone() *Builder {
-//	newB := &Builder{
-//		WriteKey:   b.WriteKey,
-//		Dataset:    b.Dataset,
-//		SampleRate: b.SampleRate,
-//		APIHost:    b.APIHost,
-//		client:     b.client,
-//	}
-//	newB.data = make(map[string]interface{})
-//	b.lock.RLock()
-//	defer b.lock.RUnlock()
-//	for k, v := range b.data {
-//		newB.data[k] = v
-//	}
-//	// copy dynamic metric generators
-//	b.dynFieldsLock.RLock()
-//	defer b.dynFieldsLock.RUnlock()
-//	newB.dynFields = make([]dynamicField, len(b.dynFields))
-//	copy(newB.dynFields, b.dynFields)
-//	return newB
-//}
+func (b *Builder) Clone() *Builder {
+	newB := &Builder{
+		WriteKey:   b.WriteKey,
+		Dataset:    b.Dataset,
+		SampleRate: b.SampleRate,
+		APIHost:    b.APIHost,
+		client:     b.client,
+	}
+	newB.data = make(map[string]interface{})
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+	for k, v := range b.data {
+		newB.data[k] = v
+	}
+	// copy dynamic metric generators
+	b.dynFieldsLock.RLock()
+	defer b.dynFieldsLock.RUnlock()
+	newB.dynFields = make([]dynamicField, len(b.dynFields))
+	copy(newB.dynFields, b.dynFields)
+	return newB
+}
 
 // Helper lifted from Go stdlib encoding/json
 func isEmptyValue(v reflect.Value) bool {
