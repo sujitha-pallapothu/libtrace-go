@@ -1,7 +1,6 @@
 package libhoney
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/honeycombio/libhoney-go/transmission"
@@ -65,54 +64,54 @@ type ClientConfig struct {
 }
 
 // NewClient creates a Client with defaults correctly set
-func NewClient(conf ClientConfig) (*Client, error) {
-	if conf.SampleRate == 0 {
-		conf.SampleRate = defaultSampleRate
-	}
-	if conf.APIHost == "" {
-		conf.APIHost = defaultAPIHost
-	}
-	if conf.Dataset == "" {
-		conf.Dataset = defaultDataset
-	}
-
-	c := &Client{
-		logger: conf.Logger,
-	}
-	c.ensureLogger()
-
-	if conf.Transmission == nil {
-		c.transmission = &transmission.Opsramptraceproxy{
-			MaxBatchSize:         DefaultMaxBatchSize,
-			BatchTimeout:         DefaultBatchTimeout,
-			MaxConcurrentBatches: DefaultMaxConcurrentBatches,
-			PendingWorkCapacity:  DefaultPendingWorkCapacity,
-			UserAgentAddition:    UserAgentAddition,
-			Logger:               c.logger,
-			Metrics:              sd,
-		}
-	} else {
-		c.transmission = conf.Transmission
-	}
-	if err := c.transmission.Start(); err != nil {
-		c.logger.Printf("transmission client failed to start: %s", err.Error())
-		return nil, err
-	}
-
-	c.builder = &Builder{
-		//WriteKey:   conf.APIKey,
-		Dataset:    conf.Dataset,
-		SampleRate: conf.SampleRate,
-		APIHost:    conf.APIHost,
-		dynFields:  make([]dynamicField, 0, 0),
-		fieldHolder: fieldHolder{
-			data: make(map[string]interface{}),
-		},
-		client: c,
-	}
-
-	return c, nil
-}
+//func NewClient(conf ClientConfig) (*Client, error) {
+//	if conf.SampleRate == 0 {
+//		conf.SampleRate = defaultSampleRate
+//	}
+//	if conf.APIHost == "" {
+//		conf.APIHost = defaultAPIHost
+//	}
+//	if conf.Dataset == "" {
+//		conf.Dataset = defaultDataset
+//	}
+//
+//	c := &Client{
+//		logger: conf.Logger,
+//	}
+//	c.ensureLogger()
+//
+//	if conf.Transmission == nil {
+//		c.transmission = &transmission.Opsramptraceproxy{
+//			MaxBatchSize:         DefaultMaxBatchSize,
+//			BatchTimeout:         DefaultBatchTimeout,
+//			MaxConcurrentBatches: DefaultMaxConcurrentBatches,
+//			PendingWorkCapacity:  DefaultPendingWorkCapacity,
+//			UserAgentAddition:    UserAgentAddition,
+//			Logger:               c.logger,
+//			Metrics:              sd,
+//		}
+//	} else {
+//		c.transmission = conf.Transmission
+//	}
+//	if err := c.transmission.Start(); err != nil {
+//		c.logger.Printf("transmission client failed to start: %s", err.Error())
+//		return nil, err
+//	}
+//
+//	c.builder = &Builder{
+//		//WriteKey:   conf.APIKey,
+//		Dataset:    conf.Dataset,
+//		SampleRate: conf.SampleRate,
+//		APIHost:    conf.APIHost,
+//		dynFields:  make([]dynamicField, 0, 0),
+//		fieldHolder: fieldHolder{
+//			data: make(map[string]interface{}),
+//		},
+//		client: c,
+//	}
+//
+//	return c, nil
+//}
 
 func (c *Client) ensureTransmission() {
 	c.oneTx.Do(func() {
@@ -182,52 +181,52 @@ func (c *Client) TxResponses() chan transmission.Response {
 // for that metric. The function is called once every time a NewEvent() is
 // created and added as a field (with name as the key) to the newly created
 // event.
-func (c *Client) AddDynamicField(name string, fn func() interface{}) error {
-	c.ensureTransmission()
-	c.ensureBuilder()
-	return c.builder.AddDynamicField(name, fn)
-}
+//func (c *Client) AddDynamicField(name string, fn func() interface{}) error {
+//	c.ensureTransmission()
+//	c.ensureBuilder()
+//	return c.builder.AddDynamicField(name, fn)
+//}
 
 // AddField adds a Field to the Client's scope. This metric will be inherited by
 // all builders and events.
-func (c *Client) AddField(name string, val interface{}) {
-	c.ensureTransmission()
-	c.ensureBuilder()
-	c.builder.AddField(name, val)
-}
+//func (c *Client) AddField(name string, val interface{}) {
+//	c.ensureTransmission()
+//	c.ensureBuilder()
+//	c.builder.AddField(name, val)
+//}
 
 // Add adds its data to the Client's scope. It adds all fields in a struct or
 // all keys in a map as individual Fields. These metrics will be inherited by
 // all builders and events.
-func (c *Client) Add(data interface{}) error {
-	c.ensureTransmission()
-	c.ensureBuilder()
-	return c.builder.Add(data)
-}
+//func (c *Client) Add(data interface{}) error {
+//	c.ensureTransmission()
+//	c.ensureBuilder()
+//	return c.builder.Add(data)
+//}
 
 // NewEvent creates a new event prepopulated with any Fields present in the
 // Client's scope.
-func (c *Client) NewEvent() *Event {
-	c.ensureTransmission()
-	c.ensureBuilder()
-	return c.builder.NewEvent()
-}
+//func (c *Client) NewEvent() *Event {
+//	c.ensureTransmission()
+//	c.ensureBuilder()
+//	return c.builder.NewEvent()
+//}
 
 // NewBuilder creates a new event builder. The builder inherits any Dynamic or
 // Static Fields present in the Client's scope.
-func (c *Client) NewBuilder() *Builder {
-	c.ensureTransmission()
-	c.ensureBuilder()
-	return c.builder.Clone()
-}
+//func (c *Client) NewBuilder() *Builder {
+//	c.ensureTransmission()
+//	c.ensureBuilder()
+//	return c.builder.Clone()
+//}
 
 // sendResponse sends a dropped event response down the response channel
-func (c *Client) sendDroppedResponse(e *Event, message string) {
-	c.ensureTransmission()
-	r := transmission.Response{
-		Err:      errors.New(message),
-		Metadata: e.Metadata,
-	}
-	c.transmission.SendResponse(r)
-
-}
+//func (c *Client) sendDroppedResponse(e *Event, message string) {
+//	c.ensureTransmission()
+//	r := transmission.Response{
+//		Err:      errors.New(message),
+//		Metadata: e.Metadata,
+//	}
+//	c.transmission.SendResponse(r)
+//
+//}

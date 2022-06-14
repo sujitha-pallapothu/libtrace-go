@@ -487,16 +487,16 @@ func Flush() {
 //   ev.Send()
 //
 // Deprecated: SendNow is deprecated and may be removed in a future major release.
-func SendNow(data interface{}) error {
-	dc.ensureLogger()
-	ev := NewEvent()
-	if err := ev.Add(data); err != nil {
-		return err
-	}
-	err := ev.Send()
-	dc.logger.Printf("SendNow enqueued event, err=%v", err)
-	return err
-}
+//func SendNow(data interface{}) error {
+//	dc.ensureLogger()
+//	ev := NewEvent()
+//	if err := ev.Add(data); err != nil {
+//		return err
+//	}
+//	err := ev.Send()
+//	dc.logger.Printf("SendNow enqueued event, err=%v", err)
+//	return err
+//}
 
 // Responses returns the channel from which the caller can read the responses
 // to sent events.
@@ -530,43 +530,43 @@ func TxResponses() chan transmission.Response {
 // for that metric. The function is called once every time a NewEvent() is
 // created and added as a field (with name as the key) to the newly created
 // event.
-func AddDynamicField(name string, fn func() interface{}) error {
-	return dc.AddDynamicField(name, fn)
-}
+//func AddDynamicField(name string, fn func() interface{}) error {
+//	return dc.AddDynamicField(name, fn)
+//}
 
 // AddField adds a Field to the global scope. This metric will be inherited by
 // all builders and events.
-func AddField(name string, val interface{}) {
-	dc.AddField(name, val)
-}
+//func AddField(name string, val interface{}) {
+//	dc.AddField(name, val)
+//}
 
 // Add adds its data to the global scope. It adds all fields in a struct or all
 // keys in a map as individual Fields. These metrics will be inherited by all
 // builders and events.
-func Add(data interface{}) error {
-	return dc.Add(data)
-}
+//func Add(data interface{}) error {
+//	return dc.Add(data)
+//}
 
 // NewEvent creates a new event prepopulated with any Fields present in the
 // global scope.
-func NewEvent() *Event {
-	return dc.NewEvent()
-}
+//func NewEvent() *Event {
+//	return dc.NewEvent()
+//}
 
 // NewBuilder creates a new event builder. The builder inherits any
 // Dynamic or Static Fields present in the global scope.
-func NewBuilder() *Builder {
-	return dc.NewBuilder()
-}
+//func NewBuilder() *Builder {
+//	return dc.NewBuilder()
+//}
 
 // AddField adds an individual metric to the event or builder on which it is
 // called. Note that if you add a value that cannot be serialized to JSON (eg a
 // function or channel), the event will fail to send.
-func (f *fieldHolder) AddField(key string, val interface{}) {
-	f.lock.Lock()
-	defer f.lock.Unlock()
-	f.data[key] = val
-}
+//func (f *fieldHolder) AddField(key string, val interface{}) {
+//	f.lock.Lock()
+//	defer f.lock.Unlock()
+//	f.data[key] = val
+//}
 
 // Add adds a complex data type to the event or builder on which it's called.
 // For structs, it adds each exported field. For maps, it adds each key/value.
@@ -655,17 +655,17 @@ func (f *fieldHolder) addMap(m interface{}) error {
 // AddFunc takes a function and runs it repeatedly, adding the return values
 // as fields.
 // The function should return error when it has exhausted its values
-func (f *fieldHolder) AddFunc(fn func() (string, interface{}, error)) error {
-	for {
-		key, rawVal, err := fn()
-		if err != nil {
-			// fn is done giving us data
-			break
-		}
-		f.AddField(key, rawVal)
-	}
-	return nil
-}
+//func (f *fieldHolder) AddFunc(fn func() (string, interface{}, error)) error {
+//	for {
+//		key, rawVal, err := fn()
+//		if err != nil {
+//			// fn is done giving us data
+//			break
+//		}
+//		f.AddField(key, rawVal)
+//	}
+//	return nil
+//}
 
 // Fields returns a reference to the map of fields that have been added to an
 // event. Caution: it is not safe to manipulate the returned map concurrently
@@ -688,14 +688,14 @@ func (f *fieldHolder) String() string {
 //
 // Adds to an event that happen after it has been sent will return without
 // having any effect.
-func (e *Event) AddField(key string, val interface{}) {
-	e.sendLock.Lock()
-	defer e.sendLock.Unlock()
-	if e.sent == true {
-		return
-	}
-	e.fieldHolder.AddField(key, val)
-}
+//func (e *Event) AddField(key string, val interface{}) {
+//	e.sendLock.Lock()
+//	defer e.sendLock.Unlock()
+//	if e.sent == true {
+//		return
+//	}
+//	e.fieldHolder.AddField(key, val)
+//}
 
 // Add adds a complex data type to the event on which it's called.
 // For structs, it adds each exported field. For maps, it adds each key/value.
@@ -718,14 +718,14 @@ func (e *Event) Add(data interface{}) error {
 //
 // Adds to an event that happen after it has been sent will return without
 // having any effect.
-func (e *Event) AddFunc(fn func() (string, interface{}, error)) error {
-	e.sendLock.Lock()
-	defer e.sendLock.Unlock()
-	if e.sent == true {
-		return nil
-	}
-	return e.fieldHolder.AddFunc(fn)
-}
+//func (e *Event) AddFunc(fn func() (string, interface{}, error)) error {
+//	e.sendLock.Lock()
+//	defer e.sendLock.Unlock()
+//	if e.sent == true {
+//		return nil
+//	}
+//	return e.fieldHolder.AddFunc(fn)
+//}
 
 // Send dispatches the event to be sent to Opsramp, sampling if necessary.
 //
@@ -742,19 +742,19 @@ func (e *Event) AddFunc(fn func() (string, interface{}, error)) error {
 //
 // Once you Send an event, any addition calls to add data to that event will
 // return without doing anything. Once the event is sent, it becomes immutable.
-func (e *Event) Send() error {
-	if e.client == nil {
-		e.client = &Client{}
-	}
-	e.client.ensureLogger()
-	if shouldDrop(e.SampleRate) {
-		e.client.logger.Printf("dropping event due to sampling")
-		sd.Increment("sampled")
-		e.client.sendDroppedResponse(e, "event dropped due to sampling")
-		return nil
-	}
-	return e.SendPresampled()
-}
+//func (e *Event) Send() error {
+//	if e.client == nil {
+//		e.client = &Client{}
+//	}
+//	e.client.ensureLogger()
+//	if shouldDrop(e.SampleRate) {
+//		e.client.logger.Printf("dropping event due to sampling")
+//		sd.Increment("sampled")
+//		e.client.sendDroppedResponse(e, "event dropped due to sampling")
+//		return nil
+//	}
+//	return e.SendPresampled()
+//}
 
 // SendPresampled dispatches the event to be sent to Opsramp.
 //
@@ -884,54 +884,54 @@ func (b *Builder) AddDynamicField(name string, fn func() interface{}) error {
 
 // NewEvent creates a new Event prepopulated with fields, dynamic
 // field values, and configuration inherited from the builder.
-func (b *Builder) NewEvent() *Event {
-	e := &Event{
-		//WriteKey:   b.WriteKey,
-		Dataset:    b.Dataset,
-		SampleRate: b.SampleRate,
-		APIHost:    b.APIHost,
-		Timestamp:  time.Now(),
-		client:     b.client,
-	}
-	e.data = make(map[string]interface{})
-
-	b.lock.RLock()
-	defer b.lock.RUnlock()
-	for k, v := range b.data {
-		e.data[k] = v
-	}
-	// create dynamic metrics
-	b.dynFieldsLock.RLock()
-	defer b.dynFieldsLock.RUnlock()
-	for _, dynField := range b.dynFields {
-		e.AddField(dynField.name, dynField.fn())
-	}
-	return e
-}
+//func (b *Builder) NewEvent() *Event {
+//	e := &Event{
+//		//WriteKey:   b.WriteKey,
+//		Dataset:    b.Dataset,
+//		SampleRate: b.SampleRate,
+//		APIHost:    b.APIHost,
+//		Timestamp:  time.Now(),
+//		client:     b.client,
+//	}
+//	e.data = make(map[string]interface{})
+//
+//	b.lock.RLock()
+//	defer b.lock.RUnlock()
+//	for k, v := range b.data {
+//		e.data[k] = v
+//	}
+//	// create dynamic metrics
+//	b.dynFieldsLock.RLock()
+//	defer b.dynFieldsLock.RUnlock()
+//	for _, dynField := range b.dynFields {
+//		e.AddField(dynField.name, dynField.fn())
+//	}
+//	return e
+//}
 
 // Clone creates a new builder that inherits all traits of this builder and
 // creates its own scope in which to add additional static and dynamic fields.
-func (b *Builder) Clone() *Builder {
-	newB := &Builder{
-		WriteKey:   b.WriteKey,
-		Dataset:    b.Dataset,
-		SampleRate: b.SampleRate,
-		APIHost:    b.APIHost,
-		client:     b.client,
-	}
-	newB.data = make(map[string]interface{})
-	b.lock.RLock()
-	defer b.lock.RUnlock()
-	for k, v := range b.data {
-		newB.data[k] = v
-	}
-	// copy dynamic metric generators
-	b.dynFieldsLock.RLock()
-	defer b.dynFieldsLock.RUnlock()
-	newB.dynFields = make([]dynamicField, len(b.dynFields))
-	copy(newB.dynFields, b.dynFields)
-	return newB
-}
+//func (b *Builder) Clone() *Builder {
+//	newB := &Builder{
+//		WriteKey:   b.WriteKey,
+//		Dataset:    b.Dataset,
+//		SampleRate: b.SampleRate,
+//		APIHost:    b.APIHost,
+//		client:     b.client,
+//	}
+//	newB.data = make(map[string]interface{})
+//	b.lock.RLock()
+//	defer b.lock.RUnlock()
+//	for k, v := range b.data {
+//		newB.data[k] = v
+//	}
+//	// copy dynamic metric generators
+//	b.dynFieldsLock.RLock()
+//	defer b.dynFieldsLock.RUnlock()
+//	newB.dynFields = make([]dynamicField, len(b.dynFields))
+//	copy(newB.dynFields, b.dynFields)
+//	return newB
+//}
 
 // Helper lifted from Go stdlib encoding/json
 func isEmptyValue(v reflect.Value) bool {

@@ -103,7 +103,7 @@ func processLine(line string, builder *libhoney.Builder) {
 	// number of the JSON file we're parsing.
 	ev := builder.NewEvent()
 	ev.Metadata = fmt.Sprintf("id %d", rand.Intn(20))
-	defer ev.Send()
+	//defer ev.Send()
 	defer fmt.Printf("Sending event %s\n", ev.Metadata)
 
 	// unmarshal the JSON blob
