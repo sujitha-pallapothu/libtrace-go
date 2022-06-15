@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"runtime"
+	//"runtime"
 	"sync"
 	"time"
 
@@ -41,15 +41,15 @@ func main() {
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	go readResponses(&wg, libhoney.Responses())
+	//go readResponses(&wg, libhoney.Responses())
 
 	// We want every event to include the number of currently running goroutines
 	// and the version number of this app. The goroutines is contrived for this
 	// example, but is useful in larger apps. Adding the version number to the
 	// global scope means every event sent will include this field.
-	libhoney.AddDynamicField("num_goroutines",
-		func() interface{} { return runtime.NumGoroutine() })
-	libhoney.AddField("read_json_log_version", version)
+	//libhoney.AddDynamicField("num_goroutines",
+	//	func() interface{} { return runtime.NumGoroutine() })
+	//libhoney.AddField("read_json_log_version", version)
 
 	// go through each json file and parse it.
 	for _, fileName := range jsonFilePaths {
@@ -132,7 +132,7 @@ func processLine(line string, builder *libhoney.Builder) {
 	}
 
 	// Add all the fields in the JSON blob to the event
-	ev.Add(data)
+	//ev.Add(data)
 
 	// Sending is handled by the defer.
 }

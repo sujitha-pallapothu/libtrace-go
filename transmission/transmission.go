@@ -89,6 +89,7 @@ type Opsramptraceproxy struct {
 }
 
 func (h *Opsramptraceproxy) Start() error {
+	fmt.Println("inside start of transmission.go")
 	if h.Logger == nil {
 		h.Logger = &nullLogger{}
 	}

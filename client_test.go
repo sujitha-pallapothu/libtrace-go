@@ -21,15 +21,15 @@ func TestClientAdding(t *testing.T) {
 		builder: b,
 	}
 
-	c.AddDynamicField("dynamo", func() interface{} { return nil })
-	assert.Equal(t, 1, len(b.dynFields), "after adding dynamic field, builder should have it")
+	//c.AddDynamicField("dynamo", func() interface{} { return nil })
+	//assert.Equal(t, 1, len(b.dynFields), "after adding dynamic field, builder should have it")
 
 	c.AddField("pine", 34)
 	assert.Equal(t, 34, b.data["pine"], "after adding field, builder should have it")
 
-	c.Add(map[string]interface{}{"birch": 45})
-	assert.Equal(t, 45, b.data["birch"], "after adding complex field, builder should have it")
-
+	//c.Add(map[string]interface{}{"birch": 45})
+	//assert.Equal(t, 45, b.data["birch"], "after adding complex field, builder should have it")
+	//
 	ev := c.NewEvent()
 	assert.Equal(t, 34, ev.data["pine"], "with default content, created events should be prepopulated")
 

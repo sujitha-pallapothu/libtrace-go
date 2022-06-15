@@ -2,6 +2,7 @@ package transmission
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -21,6 +22,8 @@ type WriterSender struct {
 }
 
 func (w *WriterSender) Start() error {
+
+	fmt.Println("inside start of writer.go")
 	if w.ResponseQueueSize == 0 {
 		w.ResponseQueueSize = 100
 	}
