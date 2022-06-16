@@ -581,7 +581,6 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 			continue
 		}else{
 			b.metrics.Increment("batches_sent")
-			fmt.Println("counter response got")
 			//b.metrics.Increment("counterResponse20x")
 		}
 
@@ -1206,7 +1205,8 @@ func (b *batchAgg) fireBatch(events []*Event) {
 // create the JSON for this event list manually so that we can send
 // responses down the response queue for any that fail to marshal
 func (b *batchAgg) encodeBatchJSON(events []*Event) ([]byte, int) {
-	fmt.Println("inside encodeBatchJson")
+
+
 	// track first vs. rest events for commas
 	first := true
 	// track how many we successfully encode for later bookkeeping
@@ -1319,7 +1319,7 @@ func (b *batchAgg) encodeBatchMsgp(events []*Event) ([]byte, int) {
 	// doesn't do size estimation. Also, the array header is of variable size
 	// based on array length, so we'll need to do some []byte shenanigans at
 	// at the end of this to properly prepend the header.
-fmt.Println("inside encodeBatchMsgp")
+
 	var arrayHeader [5]byte
 	var numEncoded int
 	var buf bytes.Buffer
@@ -1368,7 +1368,6 @@ fmt.Println("inside encodeBatchMsgp")
 }
 
 func (b *batchAgg) enqueueErrResponses(err error, events []*Event, duration time.Duration) {
-	fmt.Println("inside enqueueErrResponses")
 	for _, ev := range events {
 		if ev != nil {
 			b.enqueueResponse(Response{

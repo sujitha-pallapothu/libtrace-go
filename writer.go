@@ -1,7 +1,6 @@
 package libhoney
 
 import (
-	"fmt"
 	"github.com/honeycombio/libhoney-go/transmission"
 )
 
@@ -15,7 +14,6 @@ type WriterOutput struct {
 }
 
 func (w *WriterOutput) Add(ev *Event) {
-	fmt.Println("inside add of Writer.go")
 	transEv := &transmission.Event{
 		APIHost:    ev.APIHost,
 		//APIKey:     ev.WriteKey,
