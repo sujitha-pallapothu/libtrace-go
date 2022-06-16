@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"reflect"
@@ -243,7 +242,6 @@ type transitionOutput struct {
 }
 
 func (to *transitionOutput) Add(ev *transmission.Event) {
-	fmt.Println("inisde add of libhoney.go")
 	origEvent := &Event{
 		APIHost:     ev.APIHost,
 	//	WriteKey:    ev.APIKey,
