@@ -431,8 +431,8 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 			//fmt.Println("proxyurl",proxyurl)
             os.Getenv("HTTP_PROXY")
 			fmt.Println("htps",os.Getenv("HTTP_PROXY"))
-			//conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
-			conn, err = grpc.Dial(os.Getenv("HTTPS_PROXY"), grpc.WithTransportCredentials(tlsCreds))
+			conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
+		//	conn, err = grpc.Dial(os.Getenv("HTTPS_PROXY"), grpc.WithTransportCredentials(tlsCreds))
 
 
 			if err != nil {
