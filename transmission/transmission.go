@@ -21,6 +21,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -428,7 +429,10 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 
 			//proxyurl:= "https://172.26.1.240:3306/"
 			//fmt.Println("proxyurl",proxyurl)
-			conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
+            os.Getenv("HTTPS_PROXY")
+			fmt.Println("htps",os.Getenv("HTTPS_PROXY"))
+			//conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
+			conn, err = grpc.Dial(os.Getenv("HTTPS_PROXY"), grpc.WithTransportCredentials(tlsCreds))
 
 
 			if err != nil {
