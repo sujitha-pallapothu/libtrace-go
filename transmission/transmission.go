@@ -426,9 +426,9 @@ func (b *batchAgg) exportProtoMsgBatch(events []*Event) {
 			tlsCreds := credentials.NewTLS(tlsCfg)
 			fmt.Println("Connecting with Tls")
 
-			proxyurl:= "https://172.26.1.240:3306/"
-			fmt.Println("proxyurl",proxyurl)
-			conn, err = grpc.Dial(proxyurl, grpc.WithTransportCredentials(tlsCreds))
+			//proxyurl:= "https://172.26.1.240:3306/"
+			//fmt.Println("proxyurl",proxyurl)
+			conn, err = grpc.Dial(apiHostUrl, grpc.WithTransportCredentials(tlsCreds))
 
 
 			if err != nil {
